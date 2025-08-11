@@ -1,7 +1,7 @@
-import { EventType } from '../schemas/event-types.enum';
-import { QuizAttemptEventData } from '../schemas/quiz-attempt.interface';
-import { VideoWatchEventData } from '../schemas/video-watch.interface';
-import { AITutorInteractionEventData } from '../schemas/ai-tutor-interaction.interface';
+import { EventType } from '../src/schemas/event-types.enum';
+import { QuizAttemptEventData } from '../src/schemas/quiz-attempt.interface';
+import { VideoWatchEventData } from '../src/schemas/video-watch.interface';
+import { AITutorInteractionEventData } from '../src/schemas/ai-tutor-interaction.interface';
 
 /**
  * Standalone test to demonstrate the TypeScript interfaces and schemas

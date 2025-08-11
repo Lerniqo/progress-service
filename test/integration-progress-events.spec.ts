@@ -1,15 +1,15 @@
 import { NestFactory } from '@nestjs/core';
 import { getModelToken } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { AppModule } from '../app.module';
+import { AppModule } from '../src/app.module';
 import {
   ProgressEvent,
   ProgressEventDocument,
-} from '../schemas/progress-event.schema';
-import { EventType } from '../schemas/event-types.enum';
-import { QuizAttemptEventData } from '../schemas/quiz-attempt.interface';
-import { VideoWatchEventData } from '../schemas/video-watch.interface';
-import { AITutorInteractionEventData } from '../schemas/ai-tutor-interaction.interface';
+} from '../src/schemas/progress-event.schema';
+import { EventType } from '../src/schemas/event-types.enum';
+import { QuizAttemptEventData } from '../src/schemas/quiz-attempt.interface';
+import { VideoWatchEventData } from '../src/schemas/video-watch.interface';
+import { AITutorInteractionEventData } from '../src/schemas/ai-tutor-interaction.interface';
 
 /**
  * Test script to insert sample progress events into MongoDB

@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { HttpExceptionFilter } from '../../common/filters/http-exception.filter';
+import { HttpExceptionFilter } from './http-exception.filter';
 import { ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
 
 describe('HttpExceptionFilter', () => {
