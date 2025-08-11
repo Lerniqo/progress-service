@@ -27,3 +27,10 @@ export class Progress {
 }
 
 export const ProgressSchema = SchemaFactory.createForClass(Progress);
+
+// Re-export progress event related schemas and types
+export * from './progress-event.schema';
+export * from './event-types.enum';
+export * from './quiz-attempt.interface';
+export * from './video-watch.interface';
+export * from './ai-tutor-interaction.interface';
