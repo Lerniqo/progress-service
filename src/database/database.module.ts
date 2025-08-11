@@ -3,6 +3,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { DatabaseConfigService } from './database-config.service';
 import { DatabaseHealthService } from './database-health.service';
+import {
+  ProgressEvent,
+  ProgressEventSchema,
+} from '../schemas/progress-events.schema';
 
 @Module({
   imports: [
@@ -29,6 +33,9 @@ import { DatabaseHealthService } from './database-health.service';
       },
       inject: [ConfigService],
     }),
+    MongooseModule.forFeature([
+      { name: ProgressEvent.name, schema: ProgressEventSchema },
+    ]),
   ],
   providers: [DatabaseConfigService, DatabaseHealthService],
   exports: [MongooseModule, DatabaseConfigService, DatabaseHealthService],
