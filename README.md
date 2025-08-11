@@ -25,6 +25,87 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
+## MongoDB Setup with Docker
+
+This project uses MongoDB as its database, running in a Docker container. Follow these steps to set up the development environment:
+
+### Prerequisites
+
+- Docker and Docker Compose installed
+- Node.js 18+ and pnpm installed
+
+### Environment Setup
+
+1. **Copy the environment variables:**
+   ```bash
+   cp .env.example .env
+   ```
+
+2. **Update the `.env` file with your desired values:**
+   ```bash
+   # Application Configuration
+   NODE_ENV=development
+   APP_PORT=3000
+
+   # MongoDB Configuration
+   MONGODB_HOST=localhost
+   MONGODB_PORT=27017
+   MONGODB_USERNAME=admin
+   MONGODB_PASSWORD=password123
+   MONGODB_DATABASE=progress_service
+   ```
+
+### Running with Docker Compose
+
+1. **Start MongoDB and the application:**
+   ```bash
+   docker-compose up -d
+   ```
+
+2. **View logs:**
+   ```bash
+   docker-compose logs -f
+   ```
+
+3. **Stop the services:**
+   ```bash
+   docker-compose down
+   ```
+
+### Development Setup (Local)
+
+If you want to run the NestJS app locally while using Docker for MongoDB:
+
+1. **Start only MongoDB:**
+   ```bash
+   docker-compose up -d mongodb
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   pnpm install
+   ```
+
+3. **Run the application in development mode:**
+   ```bash
+   pnpm run start:dev
+   ```
+
+### Database Connection
+
+The application automatically connects to MongoDB using the environment variables. The `DatabaseModule` handles:
+- Connection string construction
+- Authentication with username/password
+- Connection pooling and optimization
+- Error handling and retries
+
+### Health Check
+
+The application includes a health check endpoint:
+```bash
+curl http://localhost:3000/health
+```
+
 ## Project setup
 
 ```bash
