@@ -3,7 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DatabaseModule } from './database/database.module';
-import { ProgressModule } from './progress/progress.module';
+import { validate } from './database/database-config.validation';
 
 @Module({
   imports: [
@@ -11,9 +11,10 @@ import { ProgressModule } from './progress/progress.module';
       isGlobal: true,
       envFilePath: '.env',
       cache: true,
+      validate,
+      expandVariables: true,
     }),
     DatabaseModule,
-    ProgressModule,
   ],
   controllers: [AppController],
   providers: [AppService],
