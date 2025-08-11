@@ -16,7 +16,9 @@ import { MongooseModule } from '@nestjs/mongoose';
         // Construct MongoDB URI
         let uri: string;
         if (username && password) {
-          uri = `mongodb://${username}:${password}@${host}:${port}/${database}`;
+          // For MongoDB with authentication, we need to authenticate against the admin database
+          // but connect to our specific database
+          uri = `mongodb://${username}:${password}@${host}:${port}/${database}?authSource=admin`;
         } else {
           uri = `mongodb://${host}:${port}/${database}`;
         }

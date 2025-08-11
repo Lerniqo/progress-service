@@ -24,18 +24,17 @@ services:
     ports:
       - "${APP_PORT:-3000}:3000"
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
       - MONGODB_HOST=mongodb
       - MONGODB_PORT=27017
       - MONGODB_USERNAME=${MONGODB_USERNAME}
       - MONGODB_PASSWORD=${MONGODB_PASSWORD}
       - MONGODB_DATABASE=${MONGODB_DATABASE}
+      - MONGODB_URI=mongodb://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@mongodb:27017/${MONGODB_DATABASE}?authSource=admin
     depends_on:
       - mongodb
     networks:
       - progress-network
-    env_file:
-      - .env
 
 volumes:
   mongodb_data:
