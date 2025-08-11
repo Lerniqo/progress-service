@@ -2,14 +2,30 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import {
+  // Schemas and Documents
   ProgressEvent,
   ProgressEventDocument,
+  
+  // Event Data Types
   EventData,
-} from '../schemas/progress-event.schema';
-import { EventType } from '../schemas/event-types.enum';
-import { QuizAttemptEventData } from '../schemas/quiz-attempt.interface';
-import { VideoWatchEventData } from '../schemas/video-watch.interface';
-import { AITutorInteractionEventData } from '../schemas/ai-tutor-interaction.interface';
+  QuizAttemptEventData,
+  VideoWatchEventData,
+  AITutorInteractionEventData,
+  
+  // Enums
+  EventType,
+  
+  // Utility Types and Constants
+  SCHEMA_TOKENS,
+  CreateProgressEventPayload,
+  ProgressEventQueryOptions,
+  TypedProgressEvent,
+  
+  // Type Guards
+  isQuizAttemptEventData,
+  isVideoWatchEventData,
+  isAITutorInteractionEventData,
+} from '../schemas';
 
 /**
  * Service for managing progress events
@@ -19,7 +35,7 @@ export class ProgressEventsService {
   private readonly logger = new Logger(ProgressEventsService.name);
 
   constructor(
-    @InjectModel(ProgressEvent.name)
+    @InjectModel(SCHEMA_TOKENS.PROGRESS_EVENT)
     private progressEventModel: Model<ProgressEventDocument>,
   ) {}
 
