@@ -4,12 +4,12 @@ import { Model } from 'mongoose';
 import {
   ProgressEvent,
   ProgressEventDocument,
-  EventType,
   EventData,
-  QuizAttemptEventData,
-  VideoWatchEventData,
-  AITutorInteractionEventData,
-} from '../schemas/progress.schema';
+} from '../schemas/progress-event.schema';
+import { EventType } from '../schemas/event-types.enum';
+import { QuizAttemptEventData } from '../schemas/quiz-attempt.interface';
+import { VideoWatchEventData } from '../schemas/video-watch.interface';
+import { AITutorInteractionEventData } from '../schemas/ai-tutor-interaction.interface';
 
 /**
  * Service for managing progress events
@@ -47,11 +47,10 @@ export class ProgressEventsService {
       });
 
       const savedEvent = await event.save();
-      
-      this.logger.log(
-        `Created ${eventType} event for user ${userId}`,
-        { eventId: savedEvent._id },
-      );
+
+      this.logger.log(`Created ${eventType} event for user ${userId}`, {
+        eventId: savedEvent._id,
+      });
 
       return savedEvent;
     } catch (error) {
@@ -151,7 +150,7 @@ export class ProgressEventsService {
     if (options?.eventType) query.eventType = options.eventType;
     if (options?.courseId) query.courseId = options.courseId;
     if (options?.moduleId) query.moduleId = options.moduleId;
-    
+
     if (options?.startDate || options?.endDate) {
       query.timestamp = {};
       if (options.startDate) query.timestamp.$gte = options.startDate;
@@ -218,7 +217,9 @@ export class ProgressEventsService {
     }
 
     if (summary.quizAttempts > 0) {
-      summary.averageQuizScore = Math.round(totalQuizScore / summary.quizAttempts);
+      summary.averageQuizScore = Math.round(
+        totalQuizScore / summary.quizAttempts,
+      );
     }
 
     return summary;
@@ -251,7 +252,7 @@ export class ProgressEventsService {
       };
     }
 
-    const uniqueStudents = new Set(quizEvents.map(e => e.userId)).size;
+    const uniqueStudents = new Set(quizEvents.map((e) => e.userId)).size;
     const totalScore = quizEvents.reduce(
       (sum, event) => sum + (event.eventData as QuizAttemptEventData).score,
       0,
@@ -259,24 +260,30 @@ export class ProgressEventsService {
     const averageScore = Math.round(totalScore / quizEvents.length);
 
     // Calculate average attempts per student
-    const studentAttempts = quizEvents.reduce((acc, event) => {
-      const userId = event.userId;
-      const attemptNumber = (event.eventData as QuizAttemptEventData).attemptNumber;
-      acc[userId] = Math.max(acc[userId] || 0, attemptNumber);
-      return acc;
-    }, {} as Record<string, number>);
+    const studentAttempts = quizEvents.reduce(
+      (acc, event) => {
+        const userId = event.userId;
+        const attemptNumber = (event.eventData as QuizAttemptEventData)
+          .attemptNumber;
+        acc[userId] = Math.max(acc[userId] || 0, attemptNumber);
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
 
     const totalAttemptsPerStudent = Object.values(studentAttempts).reduce(
       (sum, attempts) => sum + attempts,
       0,
     );
-    const averageAttempts = Math.round(totalAttemptsPerStudent / uniqueStudents);
+    const averageAttempts = Math.round(
+      totalAttemptsPerStudent / uniqueStudents,
+    );
 
     // Calculate completion rate (students who scored above 60%)
-    const passingStudents = Object.keys(studentAttempts).filter(userId => {
-      const userEvents = quizEvents.filter(e => e.userId === userId);
+    const passingStudents = Object.keys(studentAttempts).filter((userId) => {
+      const userEvents = quizEvents.filter((e) => e.userId === userId);
       const bestScore = Math.max(
-        ...userEvents.map(e => (e.eventData as QuizAttemptEventData).score),
+        ...userEvents.map((e) => (e.eventData as QuizAttemptEventData).score),
       );
       return bestScore >= 60;
     }).length;
@@ -319,23 +326,29 @@ export class ProgressEventsService {
       };
     }
 
-    const uniqueViewers = new Set(videoEvents.map(e => e.userId)).size;
+    const uniqueViewers = new Set(videoEvents.map((e) => e.userId)).size;
     const totalWatchTime = videoEvents.reduce(
-      (sum, event) => sum + (event.eventData as VideoWatchEventData).watchedDuration,
+      (sum, event) =>
+        sum + (event.eventData as VideoWatchEventData).watchedDuration,
       0,
     );
     const averageWatchTime = Math.round(totalWatchTime / videoEvents.length);
 
     const completedViews = videoEvents.filter(
-      event => (event.eventData as VideoWatchEventData).completed,
+      (event) => (event.eventData as VideoWatchEventData).completed,
     ).length;
-    const completionRate = Math.round((completedViews / videoEvents.length) * 100);
+    const completionRate = Math.round(
+      (completedViews / videoEvents.length) * 100,
+    );
 
     const totalWatchPercentage = videoEvents.reduce(
-      (sum, event) => sum + ((event.eventData as VideoWatchEventData).watchPercentage || 0),
+      (sum, event) =>
+        sum + ((event.eventData as VideoWatchEventData).watchPercentage || 0),
       0,
     );
-    const averageWatchPercentage = Math.round(totalWatchPercentage / videoEvents.length);
+    const averageWatchPercentage = Math.round(
+      totalWatchPercentage / videoEvents.length,
+    );
 
     return {
       totalViews: videoEvents.length,

@@ -3,11 +3,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { DatabaseConfigService } from './database-config.service';
 import { DatabaseHealthService } from './database-health.service';
-import { 
-  Progress, 
-  ProgressSchema, 
-  ProgressEvent, 
-  ProgressEventSchema 
+import {
+  Progress,
+  ProgressSchema,
+  ProgressEvent,
+  ProgressEventSchema,
 } from '../schemas/progress.schema';
 
 @Module({

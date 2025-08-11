@@ -2,16 +2,19 @@ import { Params } from 'nestjs-pino';
 
 export const pinoConfig: Params = {
   pinoHttp: {
-    transport: process.env.NODE_ENV !== 'production' ? {
-      target: 'pino-pretty',
-      options: {
-        colorize: true,
-        translateTime: 'SYS:standard',
-        ignore: 'hostname,pid',
-        singleLine: false,
-        levelFirst: true,
-      },
-    } : undefined,
+    transport:
+      process.env.NODE_ENV !== 'production'
+        ? {
+            target: 'pino-pretty',
+            options: {
+              colorize: true,
+              translateTime: 'SYS:standard',
+              ignore: 'hostname,pid',
+              singleLine: false,
+              levelFirst: true,
+            },
+          }
+        : undefined,
     level: process.env.LOG_LEVEL || 'info',
     formatters: {
       level: (label: string) => {

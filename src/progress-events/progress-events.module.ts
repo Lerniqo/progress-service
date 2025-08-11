@@ -1,18 +1,10 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
 import { ProgressEventsController } from './progress-events.controller';
 import { ProgressEventsService } from './progress-events.service';
-import { 
-  ProgressEvent, 
-  ProgressEventSchema 
-} from '../schemas/progress.schema';
+import { SchemasModule } from '../schemas/schemas.module';
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([
-      { name: ProgressEvent.name, schema: ProgressEventSchema },
-    ]),
-  ],
+  imports: [SchemasModule],
   controllers: [ProgressEventsController],
   providers: [ProgressEventsService],
   exports: [ProgressEventsService],

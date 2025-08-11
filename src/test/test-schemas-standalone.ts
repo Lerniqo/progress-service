@@ -1,7 +1,7 @@
-import { EventType } from './schemas/event-types.enum';
-import { QuizAttemptEventData } from './schemas/quiz-attempt.interface';
-import { VideoWatchEventData } from './schemas/video-watch.interface';
-import { AITutorInteractionEventData } from './schemas/ai-tutor-interaction.interface';
+import { EventType } from '../schemas/event-types.enum';
+import { QuizAttemptEventData } from '../schemas/quiz-attempt.interface';
+import { VideoWatchEventData } from '../schemas/video-watch.interface';
+import { AITutorInteractionEventData } from '../schemas/ai-tutor-interaction.interface';
 
 /**
  * Standalone test to demonstrate the TypeScript interfaces and schemas
@@ -19,10 +19,10 @@ const quizAttemptData: QuizAttemptEventData = {
   answers: [
     { questionId: 'q1', selectedOption: 'A' },
     { questionId: 'q2', selectedOption: 'C' },
-    { questionId: 'q3', selectedOption: 'B' }
+    { questionId: 'q3', selectedOption: 'B' },
   ],
   timeSpent: 300,
-  maxScore: 100
+  maxScore: 100,
 };
 
 console.log('✅ Quiz attempt data:', JSON.stringify(quizAttemptData, null, 2));
@@ -37,7 +37,7 @@ const videoWatchData: VideoWatchEventData = {
   currentPosition: 450,
   quality: '1080p',
   playbackSpeed: 1.5,
-  completed: false
+  completed: false,
 };
 
 console.log('✅ Video watch data:', JSON.stringify(videoWatchData, null, 2));
@@ -50,22 +50,26 @@ const aiTutorData: AITutorInteractionEventData = {
     {
       sender: 'student',
       content: 'I need help understanding quadratic equations',
-      timestamp: new Date('2025-08-12T00:00:00Z')
+      timestamp: new Date('2025-08-12T00:00:00Z'),
     },
     {
       sender: 'tutor',
-      content: 'I\'d be happy to help! Let\'s start with the basic form: ax² + bx + c = 0',
-      timestamp: new Date('2025-08-12T00:01:00Z')
-    }
+      content:
+        "I'd be happy to help! Let's start with the basic form: ax² + bx + c = 0",
+      timestamp: new Date('2025-08-12T00:01:00Z'),
+    },
   ],
   topic: 'quadratic equations',
   duration: 300,
   rating: 5,
   feedback: 'Very helpful explanation!',
-  resolved: true
+  resolved: true,
 };
 
-console.log('✅ AI tutor interaction data:', JSON.stringify(aiTutorData, null, 2));
+console.log(
+  '✅ AI tutor interaction data:',
+  JSON.stringify(aiTutorData, null, 2),
+);
 
 // Test 4: Test event types enum
 console.log('\n📊 Testing EventType enum...');
@@ -81,7 +85,10 @@ interface ProgressEventStructure {
   userId: string;
   timestamp: Date;
   eventType: EventType;
-  eventData: QuizAttemptEventData | VideoWatchEventData | AITutorInteractionEventData;
+  eventData:
+    | QuizAttemptEventData
+    | VideoWatchEventData
+    | AITutorInteractionEventData;
   metadata?: Record<string, any>;
   sessionId?: string;
   courseId?: string;
@@ -98,8 +105,8 @@ const sampleEvents: ProgressEventStructure[] = [
     moduleId: 'module-001',
     metadata: {
       difficulty: 'intermediate',
-      subject: 'mathematics'
-    }
+      subject: 'mathematics',
+    },
   },
   {
     userId: 'user-123',
@@ -111,8 +118,8 @@ const sampleEvents: ProgressEventStructure[] = [
     sessionId: 'session-789',
     metadata: {
       device: 'desktop',
-      browser: 'chrome'
-    }
+      browser: 'chrome',
+    },
   },
   {
     userId: 'user-123',
@@ -124,9 +131,9 @@ const sampleEvents: ProgressEventStructure[] = [
     sessionId: 'session-789',
     metadata: {
       subject: 'algebra',
-      difficulty: 'beginner'
-    }
-  }
+      difficulty: 'beginner',
+    },
+  },
 ];
 
 console.log('✅ Sample progress events created:');
@@ -137,7 +144,7 @@ sampleEvents.forEach((event, index) => {
   console.log(`    Course: ${event.courseId}`);
   console.log(`    Module: ${event.moduleId}`);
   console.log(`    Timestamp: ${event.timestamp.toISOString()}`);
-  
+
   // Type-specific information
   switch (event.eventType) {
     case EventType.QUIZ_ATTEMPT:
@@ -194,4 +201,4 @@ console.log('  ✅ Type-safe event data union types');
 console.log('  ✅ Database indexes for performance');
 console.log('  ✅ Flexible metadata support');
 
-export { };
+export {};

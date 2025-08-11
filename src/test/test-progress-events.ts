@@ -1,15 +1,15 @@
 import { NestFactory } from '@nestjs/core';
 import { getModelToken } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { AppModule } from './app.module';
-import { 
-  ProgressEvent, 
-  ProgressEventDocument, 
-  EventType,
-  QuizAttemptEventData,
-  VideoWatchEventData,
-  AITutorInteractionEventData
-} from './schemas/progress.schema';
+import { AppModule } from '../app.module';
+import {
+  ProgressEvent,
+  ProgressEventDocument,
+} from '../schemas/progress-event.schema';
+import { EventType } from '../schemas/event-types.enum';
+import { QuizAttemptEventData } from '../schemas/quiz-attempt.interface';
+import { VideoWatchEventData } from '../schemas/video-watch.interface';
+import { AITutorInteractionEventData } from '../schemas/ai-tutor-interaction.interface';
 
 /**
  * Test script to insert sample progress events into MongoDB
@@ -21,10 +21,10 @@ async function testProgressEvents() {
   try {
     // Create NestJS application context
     const app = await NestFactory.createApplicationContext(AppModule);
-    
+
     // Get the ProgressEvent model
     const progressEventModel = app.get<Model<ProgressEventDocument>>(
-      getModelToken(ProgressEvent.name)
+      getModelToken(ProgressEvent.name),
     );
 
     const userId = 'test-user-123';
@@ -40,10 +40,10 @@ async function testProgressEvents() {
       answers: [
         { questionId: 'q1', selectedOption: 'A' },
         { questionId: 'q2', selectedOption: 'C' },
-        { questionId: 'q3', selectedOption: 'B' }
+        { questionId: 'q3', selectedOption: 'B' },
       ],
       timeSpent: 300,
-      maxScore: 100
+      maxScore: 100,
     };
 
     const quizEvent = new progressEventModel({
@@ -55,15 +55,15 @@ async function testProgressEvents() {
       moduleId: 'module-001',
       metadata: {
         difficulty: 'intermediate',
-        subject: 'mathematics'
-      }
+        subject: 'mathematics',
+      },
     });
 
     const savedQuizEvent = await quizEvent.save();
     console.log('✅ Quiz attempt event saved:', {
       id: savedQuizEvent._id,
       eventType: savedQuizEvent.eventType,
-      score: (savedQuizEvent.eventData as QuizAttemptEventData).score
+      score: (savedQuizEvent.eventData as QuizAttemptEventData).score,
     });
 
     // Test 2: Video Watch Event
@@ -76,7 +76,7 @@ async function testProgressEvents() {
       currentPosition: 450,
       quality: '1080p',
       playbackSpeed: 1.5,
-      completed: false
+      completed: false,
     };
 
     const videoEvent = new progressEventModel({
@@ -89,15 +89,16 @@ async function testProgressEvents() {
       sessionId,
       metadata: {
         device: 'desktop',
-        browser: 'chrome'
-      }
+        browser: 'chrome',
+      },
     });
 
     const savedVideoEvent = await videoEvent.save();
     console.log('✅ Video watch event saved:', {
       id: savedVideoEvent._id,
       eventType: savedVideoEvent.eventType,
-      watchPercentage: (savedVideoEvent.eventData as VideoWatchEventData).watchPercentage
+      watchPercentage: (savedVideoEvent.eventData as VideoWatchEventData)
+        .watchPercentage,
     });
 
     // Test 3: AI Tutor Interaction Event
@@ -108,29 +109,30 @@ async function testProgressEvents() {
         {
           sender: 'student',
           content: 'I need help understanding quadratic equations',
-          timestamp: new Date(Date.now() - 120000) // 2 minutes ago
+          timestamp: new Date(Date.now() - 120000), // 2 minutes ago
         },
         {
           sender: 'tutor',
-          content: 'I\'d be happy to help! Let\'s start with the basic form: ax² + bx + c = 0',
-          timestamp: new Date(Date.now() - 110000)
+          content:
+            "I'd be happy to help! Let's start with the basic form: ax² + bx + c = 0",
+          timestamp: new Date(Date.now() - 110000),
         },
         {
           sender: 'student',
           content: 'Can you give me an example?',
-          timestamp: new Date(Date.now() - 90000)
+          timestamp: new Date(Date.now() - 90000),
         },
         {
           sender: 'tutor',
-          content: 'Sure! Let\'s solve x² - 5x + 6 = 0 using factoring.',
-          timestamp: new Date(Date.now() - 60000)
-        }
+          content: "Sure! Let's solve x² - 5x + 6 = 0 using factoring.",
+          timestamp: new Date(Date.now() - 60000),
+        },
       ],
       topic: 'quadratic equations',
       duration: 300,
       rating: 5,
       feedback: 'Very helpful explanation!',
-      resolved: true
+      resolved: true,
     };
 
     const aiTutorEvent = new progressEventModel({
@@ -143,16 +145,17 @@ async function testProgressEvents() {
       sessionId,
       metadata: {
         subject: 'algebra',
-        difficulty: 'beginner'
-      }
+        difficulty: 'beginner',
+      },
     });
 
     const savedAIEvent = await aiTutorEvent.save();
     console.log('✅ AI tutor interaction event saved:', {
       id: savedAIEvent._id,
       eventType: savedAIEvent.eventType,
-      messagesCount: (savedAIEvent.eventData as AITutorInteractionEventData).messages.length,
-      rating: (savedAIEvent.eventData as AITutorInteractionEventData).rating
+      messagesCount: (savedAIEvent.eventData as AITutorInteractionEventData)
+        .messages.length,
+      rating: (savedAIEvent.eventData as AITutorInteractionEventData).rating,
     });
 
     // Test 4: Query events by user
@@ -164,7 +167,9 @@ async function testProgressEvents() {
 
     console.log(`Found ${userEvents.length} events for user ${userId}:`);
     userEvents.forEach((event, index) => {
-      console.log(`  ${index + 1}. ${event.eventType} at ${event.timestamp.toISOString()}`);
+      console.log(
+        `  ${index + 1}. ${event.eventType} at ${event.timestamp.toISOString()}`,
+      );
     });
 
     // Test 5: Query events by type
@@ -177,7 +182,9 @@ async function testProgressEvents() {
     console.log(`Found ${quizEvents.length} quiz attempt events:`);
     quizEvents.forEach((event, index) => {
       const eventData = event.eventData as QuizAttemptEventData;
-      console.log(`  ${index + 1}. Quiz ${eventData.quizId} - Score: ${eventData.score}/${eventData.maxScore || 100}`);
+      console.log(
+        `  ${index + 1}. Quiz ${eventData.quizId} - Score: ${eventData.score}/${eventData.maxScore || 100}`,
+      );
     });
 
     console.log('\n🎉 All tests completed successfully!');
@@ -188,7 +195,6 @@ async function testProgressEvents() {
     console.log('✅ Test data cleaned up');
 
     await app.close();
-
   } catch (error) {
     console.error('❌ Error during testing:', error);
     process.exit(1);

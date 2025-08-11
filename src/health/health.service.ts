@@ -18,7 +18,7 @@ export class HealthService {
 
   async getHealth(): Promise<HealthCheckResponse> {
     const dbHealth = await this.databaseHealthService.checkHealth();
-    
+
     return {
       status: 'ok',
       service: 'progress-service',

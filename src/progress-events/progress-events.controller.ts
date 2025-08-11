@@ -8,14 +8,15 @@ import {
   HttpStatus,
   HttpException,
   Logger,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { ProgressEventsService } from './progress-events.service';
-import {
-  EventType,
-  QuizAttemptEventData,
-  VideoWatchEventData,
-  AITutorInteractionEventData,
-} from '../schemas/progress.schema';
+import { CreateProgressEventDto, UpdateProgressEventDto } from './dto';
+import { EventType } from '../schemas/event-types.enum';
+import { QuizAttemptEventData } from '../schemas/quiz-attempt.interface';
+import { VideoWatchEventData } from '../schemas/video-watch.interface';
+import { AITutorInteractionEventData } from '../schemas/ai-tutor-interaction.interface';
 
 /**
  * Controller for progress events API endpoints
@@ -120,14 +121,15 @@ export class ProgressEventsController {
     },
   ) {
     try {
-      const event = await this.progressEventsService.createAITutorInteractionEvent(
-        body.userId,
-        body.eventData,
-        {
-          courseId: body.courseId,
-          moduleId: body.moduleId,
-        },
-      );
+      const event =
+        await this.progressEventsService.createAITutorInteractionEvent(
+          body.userId,
+          body.eventData,
+          {
+            courseId: body.courseId,
+            moduleId: body.moduleId,
+          },
+        );
 
       return {
         success: true,
@@ -177,7 +179,7 @@ export class ProgressEventsController {
       return {
         success: true,
         count: events.length,
-        events: events.map(event => ({
+        events: events.map((event) => ({
           id: event._id,
           eventType: event.eventType,
           timestamp: event.timestamp,
@@ -235,7 +237,8 @@ export class ProgressEventsController {
   @Get('analytics/quiz/:quizId')
   async getQuizAnalytics(@Param('quizId') quizId: string) {
     try {
-      const analytics = await this.progressEventsService.getQuizAnalytics(quizId);
+      const analytics =
+        await this.progressEventsService.getQuizAnalytics(quizId);
 
       return {
         success: true,
@@ -257,7 +260,8 @@ export class ProgressEventsController {
   @Get('analytics/video/:videoId')
   async getVideoAnalytics(@Param('videoId') videoId: string) {
     try {
-      const analytics = await this.progressEventsService.getVideoAnalytics(videoId);
+      const analytics =
+        await this.progressEventsService.getVideoAnalytics(videoId);
 
       return {
         success: true,
