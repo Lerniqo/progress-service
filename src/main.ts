@@ -1,23 +1,23 @@
 import { NestFactory } from '@nestjs/core';
 import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
-import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { createValidationPipe } from './common/validation';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
-  
+
   // Use Pino logger
   app.useLogger(app.get(Logger));
-  
-  // Apply global HTTP exception filter
-  app.useGlobalFilters(new HttpExceptionFilter());
-  
+
+  // Apply our enhanced global validation pipe
+  app.useGlobalPipes(createValidationPipe());
+
   // Enable graceful shutdown hooks
   app.enableShutdownHooks();
-  
+
   const port = process.env.PORT ?? 3000;
   await app.listen(port);
-  
+
   const logger = app.get(Logger);
   logger.log(`🚀 Progress service is running on port ${port}`, 'Bootstrap');
 }

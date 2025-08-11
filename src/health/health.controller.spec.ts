@@ -29,7 +29,9 @@ describe('HealthController', () => {
 
     controller = module.get<HealthController>(HealthController);
     healthService = module.get<HealthService>(HealthService);
-    databaseHealthService = module.get<DatabaseHealthService>(DatabaseHealthService);
+    databaseHealthService = module.get<DatabaseHealthService>(
+      DatabaseHealthService,
+    );
   });
 
   it('should be defined', () => {
