@@ -41,8 +41,13 @@ export function validate(
   const mongoUri = config.MONGODB_URI as string;
   if (!mongoUri) {
     errors.push('MONGODB_URI is required');
-  } else if (!mongoUri.startsWith('mongodb://') && !mongoUri.startsWith('mongodb+srv://')) {
-    errors.push('MONGODB_URI must be a valid MongoDB connection string (mongodb:// or mongodb+srv://)');
+  } else if (
+    !mongoUri.startsWith('mongodb://') &&
+    !mongoUri.startsWith('mongodb+srv://')
+  ) {
+    errors.push(
+      'MONGODB_URI must be a valid MongoDB connection string (mongodb:// or mongodb+srv://)',
+    );
   }
 
   // Validate MongoDB connection settings

@@ -43,8 +43,8 @@ describe('HealthController', () => {
       expect(result).toEqual({
         status: 'ok',
         service: 'progress-service',
-        timestamp: expect.any(String),
-        uptime: expect.any(Number),
+        timestamp: expect.any(String) as string,
+        uptime: expect.any(Number) as number,
         database: {
           status: 'healthy',
           message: 'Database connection is healthy',
@@ -53,9 +53,10 @@ describe('HealthController', () => {
     });
 
     it('should call database health service', async () => {
+      const checkHealthSpy = jest.spyOn(databaseHealthService, 'checkHealth');
       await controller.getHealth();
 
-      expect(databaseHealthService.checkHealth).toHaveBeenCalled();
+      expect(checkHealthSpy).toHaveBeenCalled();
     });
   });
 });

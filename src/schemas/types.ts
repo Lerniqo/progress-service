@@ -97,14 +97,18 @@ export type CreateProgressEventPayload<T extends EventType = EventType> = {
  */
 export function isQuizAttemptEventData(
   eventType: EventType,
-  eventData: any,
+  eventData: unknown,
 ): eventData is QuizAttemptEventData {
   return (
     eventType === EventType.QUIZ_ATTEMPT &&
-    eventData &&
-    typeof eventData.quizId === 'string' &&
-    typeof eventData.score === 'number' &&
-    Array.isArray(eventData.answers)
+    eventData != null &&
+    typeof eventData === 'object' &&
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    typeof (eventData as any).quizId === 'string' &&
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    typeof (eventData as any).score === 'number' &&
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    Array.isArray((eventData as any).answers)
   );
 }
 
@@ -113,14 +117,18 @@ export function isQuizAttemptEventData(
  */
 export function isVideoWatchEventData(
   eventType: EventType,
-  eventData: any,
+  eventData: unknown,
 ): eventData is VideoWatchEventData {
   return (
     eventType === EventType.VIDEO_WATCH &&
-    eventData &&
-    typeof eventData.videoId === 'string' &&
-    typeof eventData.watchedDuration === 'number' &&
-    typeof eventData.totalDuration === 'number'
+    eventData != null &&
+    typeof eventData === 'object' &&
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    typeof (eventData as any).videoId === 'string' &&
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    typeof (eventData as any).watchedDuration === 'number' &&
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    typeof (eventData as any).totalDuration === 'number'
   );
 }
 
@@ -129,13 +137,16 @@ export function isVideoWatchEventData(
  */
 export function isAITutorInteractionEventData(
   eventType: EventType,
-  eventData: any,
+  eventData: unknown,
 ): eventData is AITutorInteractionEventData {
   return (
     eventType === EventType.AI_TUTOR_INTERACTION &&
-    eventData &&
-    typeof eventData.sessionId === 'string' &&
-    Array.isArray(eventData.messages)
+    eventData != null &&
+    typeof eventData === 'object' &&
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    typeof (eventData as any).sessionId === 'string' &&
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    Array.isArray((eventData as any).messages)
   );
 }
 

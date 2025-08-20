@@ -21,7 +21,7 @@ export class DatabaseConfigService {
    */
   getDatabaseConfig(): DatabaseConfig {
     const uri = this.configService.get<string>('MONGODB_URI');
-    
+
     if (!uri) {
       throw new Error('MONGODB_URI environment variable is required');
     }
@@ -38,7 +38,10 @@ export class DatabaseConfigService {
     }
 
     // Basic URI validation
-    if (!config.uri.startsWith('mongodb://') && !config.uri.startsWith('mongodb+srv://')) {
+    if (
+      !config.uri.startsWith('mongodb://') &&
+      !config.uri.startsWith('mongodb+srv://')
+    ) {
       throw new Error('MONGODB_URI must be a valid MongoDB connection string');
     }
   }
@@ -125,16 +128,22 @@ export class DatabaseConfigService {
    */
   getDatabaseName(): string {
     const uri = this.buildConnectionUri();
-    
+
     try {
       // Extract database name from URI
-      const url = new URL(uri.replace('mongodb://', 'http://').replace('mongodb+srv://', 'https://'));
+      const url = new URL(
+        uri
+          .replace('mongodb://', 'http://')
+          .replace('mongodb+srv://', 'https://'),
+      );
       const pathname = url.pathname;
       const dbName = pathname.substring(1); // Remove leading slash
-      
+
       return dbName || 'progress_service'; // fallback to default
-    } catch (error) {
-      this.logger.warn('Could not extract database name from URI, using default');
+    } catch {
+      this.logger.warn(
+        'Could not extract database name from URI, using default',
+      );
       return 'progress_service';
     }
   }
@@ -145,6 +154,8 @@ export class DatabaseConfigService {
   isAuthEnabled(): boolean {
     const uri = this.buildConnectionUri();
     // Check if URI contains username:password@ pattern
-    return /@/.test(uri) && uri.includes('://') && uri.split('://')[1].includes('@');
+    return (
+      /@/.test(uri) && uri.includes('://') && uri.split('://')[1].includes('@')
+    );
   }
 }

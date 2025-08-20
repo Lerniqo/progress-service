@@ -49,7 +49,7 @@ describe('HttpExceptionFilter', () => {
 
       expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
       expect(mockResponse.json).toHaveBeenCalledWith({
-        timestamp: expect.any(String),
+        timestamp: expect.any(String) as string,
         path: '/test',
         method: 'GET',
         statusCode: HttpStatus.BAD_REQUEST,
@@ -67,7 +67,7 @@ describe('HttpExceptionFilter', () => {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
       expect(mockResponse.json).toHaveBeenCalledWith({
-        timestamp: expect.any(String),
+        timestamp: expect.any(String) as string,
         path: '/test',
         method: 'GET',
         statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -85,7 +85,7 @@ describe('HttpExceptionFilter', () => {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
       expect(mockResponse.json).toHaveBeenCalledWith({
-        timestamp: expect.any(String),
+        timestamp: expect.any(String) as string,
         path: '/test',
         method: 'GET',
         statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
