@@ -8,10 +8,6 @@ on:
     branches:
       - main
 
-env:
-  AWS_REGION: us-east-1
-  ECR_REPOSITORY: ecs-multi-app-dev-progress-service
-
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -50,7 +46,6 @@ jobs:
   build-and-push:
     needs: test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
 
     steps:
       - name: Checkout code
@@ -61,39 +56,38 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: us-east-1
 
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Extract metadata
-        id: meta
-        run: |
-          echo "IMAGE_TAG=${GITHUB_SHA::8}" >> $GITHUB_OUTPUT
-          echo "TIMESTAMP=$(date +%Y%m%d-%H%M%S)" >> $GITHUB_OUTPUT
-
       - name: Build Docker image
         run: |
-          docker build -t $ECR_REPOSITORY:${{ steps.meta.outputs.IMAGE_TAG }} .
-          docker build -t $ECR_REPOSITORY:latest .
+          IMAGE_NAME=ecs-multi-app-dev-progress-service
+          IMAGE_TAG=${GITHUB_SHA::8}
+          docker build -t $IMAGE_NAME:$IMAGE_TAG .
 
-      - name: Tag Docker images for ECR
+      - name: Tag Docker image for ECR
         run: |
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-          docker tag $ECR_REPOSITORY:${{ steps.meta.outputs.IMAGE_TAG }} $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:${{ steps.meta.outputs.IMAGE_TAG }}
-          docker tag $ECR_REPOSITORY:latest $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
+          REGION=us-east-1
+          IMAGE_NAME=ecs-multi-app-dev-progress-service
+          IMAGE_TAG=${GITHUB_SHA::8}
+          docker tag $IMAGE_NAME:$IMAGE_TAG $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$IMAGE_NAME:latest
 
-      - name: Push Docker images to ECR
+      - name: Push Docker image to ECR
         run: |
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-          docker push $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:${{ steps.meta.outputs.IMAGE_TAG }}
-          docker push $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
+          REGION=us-east-1
+          IMAGE_NAME=ecs-multi-app-dev-progress-service
+          IMAGE_TAG=${GITHUB_SHA::8}
+          docker push $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$IMAGE_NAME:latest
 
-      - name: Output image information
+      - name: Output image URI
         run: |
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-          echo "🎉 Images pushed successfully!"
-          echo "📦 Tagged Image: $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:${{ steps.meta.outputs.IMAGE_TAG }}"
-          echo "📦 Latest Image: $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest"
-          echo "🏷️  Image Tag: ${{ steps.meta.outputs.IMAGE_TAG }}"
-          echo "⏰ Build Time: ${{ steps.meta.outputs.TIMESTAMP }}"
+          REGION=us-east-1
+          IMAGE_NAME=ecs-multi-app-dev-progress-service
+          IMAGE_TAG=${GITHUB_SHA::8}
+          echo "Image URI: $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$IMAGE_NAME:$IMAGE_TAG"
+          echo "Latest URI: $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$IMAGE_NAME:latest"
