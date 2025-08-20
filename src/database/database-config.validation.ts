@@ -8,13 +8,7 @@ export enum Environment {
 export interface EnvironmentVariables {
   NODE_ENV: Environment;
   APP_PORT: number;
-  MONGODB_HOST: string;
-  MONGODB_PORT: number;
-  MONGODB_USERNAME?: string;
-  MONGODB_PASSWORD?: string;
-  MONGODB_DATABASE: string;
-  MONGODB_URI?: string;
-  MONGODB_AUTH_SOURCE: string;
+  MONGODB_URI: string;
   MONGODB_MAX_POOL_SIZE: number;
   MONGODB_MIN_POOL_SIZE: number;
   MONGODB_SERVER_SELECTION_TIMEOUT: number;
@@ -38,44 +32,17 @@ export function validate(
 
   // Validate port numbers
   const appPort = parseInt(config.APP_PORT as string) || 3000;
-  const mongoPort = parseInt(config.MONGODB_PORT as string) || 27017;
 
   if (appPort < 1 || appPort > 65535) {
     errors.push('APP_PORT must be a valid port number (1-65535)');
   }
 
-  if (mongoPort < 1 || mongoPort > 65535) {
-    errors.push('MONGODB_PORT must be a valid port number (1-65535)');
-  }
-
-  // Validate required strings
-  const mongoHost = (config.MONGODB_HOST as string) || 'localhost';
-  const mongoDatabase =
-    (config.MONGODB_DATABASE as string) || 'progress_service';
-  const mongoAuthSource = (config.MONGODB_AUTH_SOURCE as string) || 'admin';
-
-  if (!mongoHost.trim()) {
-    errors.push('MONGODB_HOST cannot be empty');
-  }
-
-  if (!mongoDatabase.trim()) {
-    errors.push('MONGODB_DATABASE cannot be empty');
-  }
-
-  // Validate authentication credentials
-  const mongoUsername = config.MONGODB_USERNAME as string;
-  const mongoPassword = config.MONGODB_PASSWORD as string;
-
-  if (mongoUsername && !mongoPassword) {
-    errors.push(
-      'MONGODB_PASSWORD is required when MONGODB_USERNAME is provided',
-    );
-  }
-
-  if (mongoPassword && !mongoUsername) {
-    errors.push(
-      'MONGODB_USERNAME is required when MONGODB_PASSWORD is provided',
-    );
+  // Validate MongoDB URI
+  const mongoUri = config.MONGODB_URI as string;
+  if (!mongoUri) {
+    errors.push('MONGODB_URI is required');
+  } else if (!mongoUri.startsWith('mongodb://') && !mongoUri.startsWith('mongodb+srv://')) {
+    errors.push('MONGODB_URI must be a valid MongoDB connection string (mongodb:// or mongodb+srv://)');
   }
 
   // Validate MongoDB connection settings
@@ -133,13 +100,7 @@ export function validate(
   return {
     NODE_ENV: nodeEnv as Environment,
     APP_PORT: appPort,
-    MONGODB_HOST: mongoHost,
-    MONGODB_PORT: mongoPort,
-    MONGODB_USERNAME: mongoUsername,
-    MONGODB_PASSWORD: mongoPassword,
-    MONGODB_DATABASE: mongoDatabase,
-    MONGODB_URI: config.MONGODB_URI as string,
-    MONGODB_AUTH_SOURCE: mongoAuthSource,
+    MONGODB_URI: mongoUri,
     MONGODB_MAX_POOL_SIZE: maxPoolSize,
     MONGODB_MIN_POOL_SIZE: minPoolSize,
     MONGODB_SERVER_SELECTION_TIMEOUT: serverSelectionTimeout,

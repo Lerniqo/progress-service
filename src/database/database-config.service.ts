@@ -3,13 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { MongooseModuleOptions } from '@nestjs/mongoose';
 
 export interface DatabaseConfig {
-  host: string;
-  port: number;
-  username?: string;
-  password?: string;
-  database: string;
-  uri?: string;
-  authSource?: string;
+  uri: string;
 }
 
 export interface DatabaseConnectionOptions extends MongooseModuleOptions {
@@ -26,52 +20,26 @@ export class DatabaseConfigService {
    * Get database configuration from environment variables
    */
   getDatabaseConfig(): DatabaseConfig {
-    const config: DatabaseConfig = {
-      host: this.configService.get<string>('MONGODB_HOST', 'localhost'),
-      port: parseInt(
-        this.configService.get<string>('MONGODB_PORT', '27017'),
-        10,
-      ),
-      username: this.configService.get<string>('MONGODB_USERNAME'),
-      password: this.configService.get<string>('MONGODB_PASSWORD'),
-      database: this.configService.get<string>(
-        'MONGODB_DATABASE',
-        'progress_service',
-      ),
-      uri: this.configService.get<string>('MONGODB_URI'),
-      authSource: this.configService.get<string>(
-        'MONGODB_AUTH_SOURCE',
-        'admin',
-      ),
-    };
+    const uri = this.configService.get<string>('MONGODB_URI');
+    
+    if (!uri) {
+      throw new Error('MONGODB_URI environment variable is required');
+    }
 
-    this.validateConfig(config);
-    return config;
+    return { uri };
   }
 
   /**
    * Validate database configuration
    */
   private validateConfig(config: DatabaseConfig): void {
-    if (!config.database) {
-      throw new Error('MONGODB_DATABASE environment variable is required');
+    if (!config.uri) {
+      throw new Error('MONGODB_URI is required');
     }
 
-    if (config.port < 1 || config.port > 65535) {
-      throw new Error('MONGODB_PORT must be a valid port number (1-65535)');
-    }
-
-    // If username is provided, password should also be provided
-    if (config.username && !config.password) {
-      throw new Error(
-        'MONGODB_PASSWORD is required when MONGODB_USERNAME is provided',
-      );
-    }
-
-    if (config.password && !config.username) {
-      throw new Error(
-        'MONGODB_USERNAME is required when MONGODB_PASSWORD is provided',
-      );
+    // Basic URI validation
+    if (!config.uri.startsWith('mongodb://') && !config.uri.startsWith('mongodb+srv://')) {
+      throw new Error('MONGODB_URI must be a valid MongoDB connection string');
     }
   }
 
@@ -80,28 +48,7 @@ export class DatabaseConfigService {
    */
   buildConnectionUri(): string {
     const config = this.getDatabaseConfig();
-
-    // Use provided URI if available
-    if (config.uri) {
-      return config.uri;
-    }
-
-    // Build URI from components
-    let uri: string;
-    if (config.username && config.password) {
-      const encodedUsername = encodeURIComponent(config.username);
-      const encodedPassword = encodeURIComponent(config.password);
-      uri = `mongodb://${encodedUsername}:${encodedPassword}@${config.host}:${config.port}/${config.database}`;
-
-      // Add auth source if authentication is used
-      if (config.authSource) {
-        uri += `?authSource=${config.authSource}`;
-      }
-    } else {
-      uri = `mongodb://${config.host}:${config.port}/${config.database}`;
-    }
-
-    return uri;
+    return config.uri;
   }
 
   /**
@@ -174,17 +121,30 @@ export class DatabaseConfigService {
   }
 
   /**
-   * Get database name
+   * Get database name from URI
    */
   getDatabaseName(): string {
-    return this.getDatabaseConfig().database;
+    const uri = this.buildConnectionUri();
+    
+    try {
+      // Extract database name from URI
+      const url = new URL(uri.replace('mongodb://', 'http://').replace('mongodb+srv://', 'https://'));
+      const pathname = url.pathname;
+      const dbName = pathname.substring(1); // Remove leading slash
+      
+      return dbName || 'progress_service'; // fallback to default
+    } catch (error) {
+      this.logger.warn('Could not extract database name from URI, using default');
+      return 'progress_service';
+    }
   }
 
   /**
-   * Check if authentication is configured
+   * Check if authentication is configured in URI
    */
   isAuthEnabled(): boolean {
-    const config = this.getDatabaseConfig();
-    return !!(config.username && config.password);
+    const uri = this.buildConnectionUri();
+    // Check if URI contains username:password@ pattern
+    return /@/.test(uri) && uri.includes('://') && uri.split('://')[1].includes('@');
   }
 }
