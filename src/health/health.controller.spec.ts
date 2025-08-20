@@ -5,7 +5,6 @@ import { DatabaseHealthService } from '../database/database-health.service';
 
 describe('HealthController', () => {
   let controller: HealthController;
-  let healthService: HealthService;
   let databaseHealthService: DatabaseHealthService;
 
   beforeEach(async () => {
@@ -28,7 +27,6 @@ describe('HealthController', () => {
     }).compile();
 
     controller = module.get<HealthController>(HealthController);
-    healthService = module.get<HealthService>(HealthService);
     databaseHealthService = module.get<DatabaseHealthService>(
       DatabaseHealthService,
     );

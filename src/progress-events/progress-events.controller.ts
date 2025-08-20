@@ -8,11 +8,8 @@ import {
   HttpStatus,
   HttpException,
   Logger,
-  UsePipes,
-  ValidationPipe,
 } from '@nestjs/common';
 import { ProgressEventsService } from './progress-events.service';
-import { CreateProgressEventDto, UpdateProgressEventDto } from './dto';
 import { EventType } from '../schemas/event-types.enum';
 import { QuizAttemptEventData } from '../schemas/quiz-attempt.interface';
 import { VideoWatchEventData } from '../schemas/video-watch.interface';
@@ -281,7 +278,7 @@ export class ProgressEventsController {
    * Health check endpoint
    */
   @Get('health')
-  async healthCheck() {
+  healthCheck() {
     return {
       success: true,
       message: 'Progress Events service is healthy',

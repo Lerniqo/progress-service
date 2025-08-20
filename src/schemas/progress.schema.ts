@@ -9,7 +9,6 @@ import {
   IsOptional,
   Min,
   Max,
-  ArrayNotEmpty,
 } from 'class-validator';
 
 export type ProgressDocument = Progress & Document;

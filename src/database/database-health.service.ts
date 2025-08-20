@@ -18,6 +18,14 @@ export interface DatabaseHealthCheck {
   };
 }
 
+// Mongoose connection states constants
+const MONGO_CONNECTION_STATES = {
+  DISCONNECTED: 0,
+  CONNECTED: 1,
+  CONNECTING: 2,
+  DISCONNECTING: 3,
+} as const;
+
 @Injectable()
 export class DatabaseHealthService {
   private readonly logger = new Logger(DatabaseHealthService.name);
@@ -32,8 +40,7 @@ export class DatabaseHealthService {
       const readyState = this.connection.readyState;
       const readyStateText = this.getReadyStateText(readyState);
 
-      const CONNECTED_STATE = 1;
-      if (readyState !== CONNECTED_STATE) {
+      if (readyState !== MONGO_CONNECTION_STATES.CONNECTED) {
         return {
           status: 'unhealthy',
           message: `Database connection is ${readyStateText}`,
@@ -70,7 +77,7 @@ export class DatabaseHealthService {
       );
 
       return {
-        status: 'unhealthy',
+        status: 'unhealthy' as const,
         message: `Database health check failed: ${error instanceof Error ? error.message : String(error)}`,
         details: {
           readyState: this.connection.readyState,
@@ -116,11 +123,11 @@ export class DatabaseHealthService {
    * Convert mongoose connection ready state to human-readable text
    */
   private getReadyStateText(readyState: number): string {
-    const states = {
-      0: 'disconnected',
-      1: 'connected',
-      2: 'connecting',
-      3: 'disconnecting',
+    const states: Record<number, string> = {
+      [MONGO_CONNECTION_STATES.DISCONNECTED]: 'disconnected',
+      [MONGO_CONNECTION_STATES.CONNECTED]: 'connected',
+      [MONGO_CONNECTION_STATES.CONNECTING]: 'connecting',
+      [MONGO_CONNECTION_STATES.DISCONNECTING]: 'disconnecting',
     };
     return states[readyState] || 'unknown';
   }
@@ -134,9 +141,8 @@ export class DatabaseHealthService {
     readyStateText: string;
   } {
     const readyState = this.connection.readyState;
-    const CONNECTED_STATE = 1;
     return {
-      isConnected: readyState === CONNECTED_STATE,
+      isConnected: readyState === MONGO_CONNECTION_STATES.CONNECTED,
       readyState,
       readyStateText: this.getReadyStateText(readyState),
     };
@@ -147,8 +153,7 @@ export class DatabaseHealthService {
    */
   async waitForConnection(timeoutMs: number = 10000): Promise<boolean> {
     return new Promise((resolve) => {
-      const CONNECTED_STATE = 1;
-      if (this.connection.readyState === CONNECTED_STATE) {
+      if (this.connection.readyState === MONGO_CONNECTION_STATES.CONNECTED) {
         resolve(true);
         return;
       }

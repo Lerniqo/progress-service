@@ -5,7 +5,7 @@ import { Progress, ProgressSchema } from './progress.schema';
 
 /**
  * SchemasModule - Centralized module for all MongoDB schemas
- * 
+ *
  * This module:
  * - Registers all Mongoose schemas with NestJS
  * - Provides models for dependency injection
@@ -14,15 +14,15 @@ import { Progress, ProgressSchema } from './progress.schema';
 @Module({
   imports: [
     MongooseModule.forFeature([
-      { 
-        name: ProgressEvent.name, 
+      {
+        name: ProgressEvent.name,
         schema: ProgressEventSchema,
-        collection: 'progress_events' // Explicit collection name
+        collection: 'progress_events', // Explicit collection name
       },
-      { 
-        name: Progress.name, 
+      {
+        name: Progress.name,
         schema: ProgressSchema,
-        collection: 'progress' // Explicit collection name
+        collection: 'progress', // Explicit collection name
       },
     ]),
   ],

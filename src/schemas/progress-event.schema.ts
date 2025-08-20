@@ -10,18 +10,9 @@ import {
   IsObject,
 } from 'class-validator';
 import { EventType } from './event-types.enum';
-import {
-  QuizAttemptEventData,
-  QuizAttemptEventDataSchema,
-} from './quiz-attempt.interface';
-import {
-  VideoWatchEventData,
-  VideoWatchEventDataSchema,
-} from './video-watch.interface';
-import {
-  AITutorInteractionEventData,
-  AITutorInteractionEventDataSchema,
-} from './ai-tutor-interaction.interface';
+import { QuizAttemptEventData } from './quiz-attempt.interface';
+import { VideoWatchEventData } from './video-watch.interface';
+import { AITutorInteractionEventData } from './ai-tutor-interaction.interface';
 
 export type ProgressEventDocument = ProgressEvent & Document;
 

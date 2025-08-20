@@ -1,6 +1,6 @@
 /**
  * Schemas Package Export Index
- * 
+ *
  * This file provides a centralized export point for all schema-related
  * types, interfaces, enums, and modules used throughout the application.
  */
@@ -38,28 +38,24 @@ export * from './types';
 // =============================================================================
 
 // Re-export commonly used document types for convenience
-export type { 
-  ProgressDocument, 
-  ProgressEventDocument 
+export type {
+  ProgressDocument,
+  ProgressEventDocument,
 } from './progress.schema';
 
-export type { 
-  EventData 
-} from './progress-event.schema';
+export type { EventData } from './progress-event.schema';
 
 // Export event data types for type checking
-export type { 
+export type {
   QuizAttemptEventData,
-  QuizAnswer
+  QuizAnswer,
 } from './quiz-attempt.interface';
 
-export type { 
-  VideoWatchEventData 
-} from './video-watch.interface';
+export type { VideoWatchEventData } from './video-watch.interface';
 
-export type { 
+export type {
   AITutorInteractionEventData,
-  TutorMessage 
+  TutorMessage,
 } from './ai-tutor-interaction.interface';
 
 // =============================================================================

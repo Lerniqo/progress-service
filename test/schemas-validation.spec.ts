@@ -147,24 +147,27 @@ sampleEvents.forEach((event, index) => {
 
   // Type-specific information
   switch (event.eventType) {
-    case EventType.QUIZ_ATTEMPT:
+    case EventType.QUIZ_ATTEMPT: {
       const quizData = event.eventData as QuizAttemptEventData;
       console.log(`    Quiz ID: ${quizData.quizId}`);
       console.log(`    Score: ${quizData.score}/${quizData.maxScore}`);
       console.log(`    Attempt: ${quizData.attemptNumber}`);
       break;
-    case EventType.VIDEO_WATCH:
+    }
+    case EventType.VIDEO_WATCH: {
       const videoData = event.eventData as VideoWatchEventData;
       console.log(`    Video ID: ${videoData.videoId}`);
       console.log(`    Watch Progress: ${videoData.watchPercentage}%`);
       console.log(`    Completed: ${videoData.completed}`);
       break;
-    case EventType.AI_TUTOR_INTERACTION:
+    }
+    case EventType.AI_TUTOR_INTERACTION: {
       const tutorData = event.eventData as AITutorInteractionEventData;
       console.log(`    Session ID: ${tutorData.sessionId}`);
       console.log(`    Messages: ${tutorData.messages.length}`);
       console.log(`    Rating: ${tutorData.rating}/5`);
       break;
+    }
   }
 });
 

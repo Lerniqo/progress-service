@@ -7,7 +7,6 @@ import {
   ValidateNested,
   IsNotEmpty,
 } from 'class-validator';
-import { Type } from 'class-transformer';
 import { EventType } from '../../schemas/event-types.enum';
 import type { EventData } from '../../schemas/progress-event.schema';
 import type { QuizAttemptEventData } from '../../schemas/quiz-attempt.interface';
