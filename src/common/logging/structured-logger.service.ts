@@ -4,7 +4,7 @@ import { Injectable, Logger } from '@nestjs/common';
 export class StructuredLogger extends Logger {
   private serviceName = 'progress-service';
 
-  log(message: string, context?: string, ...optionalParams: any[]) {
+  log(message: string, context?: string, ...optionalParams: unknown[]) {
     const logEntry = this.createLogEntry(
       'info',
       message,
@@ -18,7 +18,7 @@ export class StructuredLogger extends Logger {
     message: string,
     trace?: string,
     context?: string,
-    ...optionalParams: any[]
+    ...optionalParams: unknown[]
   ) {
     const logEntry = this.createLogEntry(
       'error',
@@ -30,7 +30,7 @@ export class StructuredLogger extends Logger {
     super.error(logEntry, trace, context);
   }
 
-  warn(message: string, context?: string, ...optionalParams: any[]) {
+  warn(message: string, context?: string, ...optionalParams: unknown[]) {
     const logEntry = this.createLogEntry(
       'warn',
       message,
@@ -40,7 +40,7 @@ export class StructuredLogger extends Logger {
     super.warn(logEntry, context);
   }
 
-  debug(message: string, context?: string, ...optionalParams: any[]) {
+  debug(message: string, context?: string, ...optionalParams: unknown[]) {
     const logEntry = this.createLogEntry(
       'debug',
       message,
@@ -50,7 +50,7 @@ export class StructuredLogger extends Logger {
     super.debug(logEntry, context);
   }
 
-  verbose(message: string, context?: string, ...optionalParams: any[]) {
+  verbose(message: string, context?: string, ...optionalParams: unknown[]) {
     const logEntry = this.createLogEntry(
       'verbose',
       message,
@@ -64,9 +64,9 @@ export class StructuredLogger extends Logger {
     level: string,
     message: string,
     context?: string,
-    optionalParams?: any[],
+    optionalParams?: unknown[],
     trace?: string,
-  ): any {
+  ): string {
     const logEntry = {
       timestamp: new Date().toISOString(),
       service_name: this.serviceName,

@@ -1,18 +1,18 @@
 /**
  * Schema Type Definitions
- * 
+ *
  * This file contains utility types, interfaces, and type guards
  * for working with schemas in a type-safe manner.
  */
 
 import { Document, Model } from 'mongoose';
 import { EventType } from './event-types.enum';
-import type { 
-  ProgressDocument, 
+import type {
+  ProgressDocument,
   ProgressEventDocument,
   QuizAttemptEventData,
   VideoWatchEventData,
-  AITutorInteractionEventData
+  AITutorInteractionEventData,
 } from './index';
 
 // =============================================================================
@@ -32,9 +32,9 @@ export type ProgressEventModel = Model<ProgressEventDocument>;
 /**
  * Union type for all possible event data types
  */
-export type EventDataUnion = 
-  | QuizAttemptEventData 
-  | VideoWatchEventData 
+export type EventDataUnion =
+  | QuizAttemptEventData
+  | VideoWatchEventData
   | AITutorInteractionEventData;
 
 /**
@@ -60,14 +60,17 @@ export type EventDataMap = {
 /**
  * Extract event data type based on event type
  */
-export type ExtractEventData<T extends EventType> = T extends keyof EventDataMap 
-  ? EventDataMap[T] 
+export type ExtractEventData<T extends EventType> = T extends keyof EventDataMap
+  ? EventDataMap[T]
   : Record<string, any>;
 
 /**
  * Progress event with typed event data
  */
-export type TypedProgressEvent<T extends EventType = EventType> = Omit<ProgressEventDocument, 'eventData'> & {
+export type TypedProgressEvent<T extends EventType = EventType> = Omit<
+  ProgressEventDocument,
+  'eventData'
+> & {
   eventData: ExtractEventData<T>;
 };
 
@@ -94,13 +97,19 @@ export type CreateProgressEventPayload<T extends EventType = EventType> = {
  */
 export function isQuizAttemptEventData(
   eventType: EventType,
-  eventData: any
+  eventData: unknown,
 ): eventData is QuizAttemptEventData {
-  return eventType === EventType.QUIZ_ATTEMPT && 
-         eventData && 
-         typeof eventData.quizId === 'string' &&
-         typeof eventData.score === 'number' &&
-         Array.isArray(eventData.answers);
+  return (
+    eventType === EventType.QUIZ_ATTEMPT &&
+    eventData != null &&
+    typeof eventData === 'object' &&
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    typeof (eventData as any).quizId === 'string' &&
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    typeof (eventData as any).score === 'number' &&
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    Array.isArray((eventData as any).answers)
+  );
 }
 
 /**
@@ -108,13 +117,19 @@ export function isQuizAttemptEventData(
  */
 export function isVideoWatchEventData(
   eventType: EventType,
-  eventData: any
+  eventData: unknown,
 ): eventData is VideoWatchEventData {
-  return eventType === EventType.VIDEO_WATCH &&
-         eventData &&
-         typeof eventData.videoId === 'string' &&
-         typeof eventData.watchedDuration === 'number' &&
-         typeof eventData.totalDuration === 'number';
+  return (
+    eventType === EventType.VIDEO_WATCH &&
+    eventData != null &&
+    typeof eventData === 'object' &&
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    typeof (eventData as any).videoId === 'string' &&
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    typeof (eventData as any).watchedDuration === 'number' &&
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    typeof (eventData as any).totalDuration === 'number'
+  );
 }
 
 /**
@@ -122,12 +137,17 @@ export function isVideoWatchEventData(
  */
 export function isAITutorInteractionEventData(
   eventType: EventType,
-  eventData: any
+  eventData: unknown,
 ): eventData is AITutorInteractionEventData {
-  return eventType === EventType.AI_TUTOR_INTERACTION &&
-         eventData &&
-         typeof eventData.sessionId === 'string' &&
-         Array.isArray(eventData.messages);
+  return (
+    eventType === EventType.AI_TUTOR_INTERACTION &&
+    eventData != null &&
+    typeof eventData === 'object' &&
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    typeof (eventData as any).sessionId === 'string' &&
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    Array.isArray((eventData as any).messages)
+  );
 }
 
 // =============================================================================

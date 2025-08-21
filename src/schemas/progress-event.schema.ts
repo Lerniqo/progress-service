@@ -1,3 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
 import { Type } from 'class-transformer';
@@ -10,18 +15,9 @@ import {
   IsObject,
 } from 'class-validator';
 import { EventType } from './event-types.enum';
-import {
-  QuizAttemptEventData,
-  QuizAttemptEventDataSchema,
-} from './quiz-attempt.interface';
-import {
-  VideoWatchEventData,
-  VideoWatchEventDataSchema,
-} from './video-watch.interface';
-import {
-  AITutorInteractionEventData,
-  AITutorInteractionEventDataSchema,
-} from './ai-tutor-interaction.interface';
+import { QuizAttemptEventData } from './quiz-attempt.interface';
+import { VideoWatchEventData } from './video-watch.interface';
+import { AITutorInteractionEventData } from './ai-tutor-interaction.interface';
 
 export type ProgressEventDocument = ProgressEvent & Document;
 

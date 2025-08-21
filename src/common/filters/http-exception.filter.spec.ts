@@ -1,14 +1,23 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { HttpExceptionFilter } from './http-exception.filter';
 import { ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
 
+interface MockResponse {
+  status: jest.Mock;
+  json: jest.Mock;
+}
+
+interface MockRequest {
+  url: string;
+  method: string;
+}
+
 describe('HttpExceptionFilter', () => {
   let filter: HttpExceptionFilter;
-  let mockResponse: any;
-  let mockRequest: any;
+  let mockResponse: MockResponse;
+  let mockRequest: MockRequest;
   let mockHost: ArgumentsHost;
 
-  beforeEach(async () => {
+  beforeEach(() => {
     filter = new HttpExceptionFilter();
 
     mockResponse = {
@@ -25,7 +34,7 @@ describe('HttpExceptionFilter', () => {
       switchToHttp: jest.fn().mockReturnThis(),
       getResponse: jest.fn().mockReturnValue(mockResponse),
       getRequest: jest.fn().mockReturnValue(mockRequest),
-    } as any;
+    } as unknown as ArgumentsHost;
   });
 
   it('should be defined', () => {
@@ -40,7 +49,7 @@ describe('HttpExceptionFilter', () => {
 
       expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
       expect(mockResponse.json).toHaveBeenCalledWith({
-        timestamp: expect.any(String),
+        timestamp: expect.any(String) as string,
         path: '/test',
         method: 'GET',
         statusCode: HttpStatus.BAD_REQUEST,
@@ -58,7 +67,7 @@ describe('HttpExceptionFilter', () => {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
       expect(mockResponse.json).toHaveBeenCalledWith({
-        timestamp: expect.any(String),
+        timestamp: expect.any(String) as string,
         path: '/test',
         method: 'GET',
         statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
@@ -76,7 +85,7 @@ describe('HttpExceptionFilter', () => {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
       expect(mockResponse.json).toHaveBeenCalledWith({
-        timestamp: expect.any(String),
+        timestamp: expect.any(String) as string,
         path: '/test',
         method: 'GET',
         statusCode: HttpStatus.INTERNAL_SERVER_ERROR,

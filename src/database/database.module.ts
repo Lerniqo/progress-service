@@ -6,7 +6,7 @@ import { DatabaseHealthService } from './database-health.service';
 import {
   ProgressEvent,
   ProgressEventSchema,
-} from '../schemas/progress-events.schema';
+} from '../schemas/progress-event.schema';
 
 @Module({
   imports: [

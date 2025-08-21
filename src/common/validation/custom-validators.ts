@@ -7,6 +7,30 @@ import {
 } from 'class-validator';
 import { EventType } from '../../schemas/event-types.enum';
 
+interface QuizAttemptData {
+  quizId: string;
+  score: number;
+  attemptNumber: number;
+  answers: unknown[];
+}
+
+interface VideoWatchData {
+  videoId: string;
+  watchedDuration: number;
+  totalDuration: number;
+}
+
+interface AITutorMessage {
+  sender: string;
+  content: string;
+  timestamp: string | Date;
+}
+
+interface AITutorInteractionData {
+  sessionId: string;
+  messages: AITutorMessage[];
+}
+
 /**
  * Custom validator to ensure event data matches event type
  */
@@ -14,8 +38,8 @@ import { EventType } from '../../schemas/event-types.enum';
 export class EventDataMatchesTypeConstraint
   implements ValidatorConstraintInterface
 {
-  validate(eventData: any, args: ValidationArguments) {
-    const object = args.object as any;
+  validate(eventData: unknown, args: ValidationArguments) {
+    const object = args.object as { eventType: EventType };
     const eventType = object.eventType;
 
     if (!eventType || !eventData) {
@@ -34,47 +58,61 @@ export class EventDataMatchesTypeConstraint
     }
   }
 
-  private validateQuizAttemptData(data: any): boolean {
+  private validateQuizAttemptData(data: unknown): data is QuizAttemptData {
+    if (!data || typeof data !== 'object') return false;
+    const typedData = data as Partial<QuizAttemptData>;
+
     return !!(
-      data.quizId &&
-      typeof data.score === 'number' &&
-      data.score >= 0 &&
-      data.score <= 100 &&
-      typeof data.attemptNumber === 'number' &&
-      data.attemptNumber > 0 &&
-      Array.isArray(data.answers) &&
-      data.answers.length > 0
+      typedData.quizId &&
+      typeof typedData.score === 'number' &&
+      typedData.score >= 0 &&
+      typedData.score <= 100 &&
+      typeof typedData.attemptNumber === 'number' &&
+      typedData.attemptNumber > 0 &&
+      Array.isArray(typedData.answers) &&
+      typedData.answers.length > 0
     );
   }
 
-  private validateVideoWatchData(data: any): boolean {
+  private validateVideoWatchData(data: unknown): data is VideoWatchData {
+    if (!data || typeof data !== 'object') return false;
+    const typedData = data as Partial<VideoWatchData>;
+
     return !!(
-      data.videoId &&
-      typeof data.watchedDuration === 'number' &&
-      data.watchedDuration >= 0 &&
-      typeof data.totalDuration === 'number' &&
-      data.totalDuration > 0 &&
-      data.watchedDuration <= data.totalDuration
+      typedData.videoId &&
+      typeof typedData.watchedDuration === 'number' &&
+      typedData.watchedDuration >= 0 &&
+      typeof typedData.totalDuration === 'number' &&
+      typedData.totalDuration > 0 &&
+      typedData.watchedDuration <= typedData.totalDuration
     );
   }
 
-  private validateAITutorInteractionData(data: any): boolean {
+  private validateAITutorInteractionData(
+    data: unknown,
+  ): data is AITutorInteractionData {
+    if (!data || typeof data !== 'object') return false;
+    const typedData = data as Partial<AITutorInteractionData>;
+
     return !!(
-      data.sessionId &&
-      Array.isArray(data.messages) &&
-      data.messages.length > 0 &&
-      data.messages.every(
-        (msg: any) =>
-          msg.sender &&
-          ['student', 'tutor'].includes(msg.sender) &&
-          msg.content &&
-          msg.timestamp,
-      )
+      typedData.sessionId &&
+      Array.isArray(typedData.messages) &&
+      typedData.messages.length > 0 &&
+      typedData.messages.every((msg: unknown) => {
+        if (!msg || typeof msg !== 'object') return false;
+        const typedMsg = msg as Partial<AITutorMessage>;
+        return (
+          typedMsg.sender &&
+          ['student', 'tutor'].includes(typedMsg.sender) &&
+          typedMsg.content &&
+          typedMsg.timestamp
+        );
+      })
     );
   }
 
   defaultMessage(args: ValidationArguments) {
-    const object = args.object as any;
+    const object = args.object as { eventType: EventType };
     return `Event data does not match the event type: ${object.eventType}`;
   }
 }

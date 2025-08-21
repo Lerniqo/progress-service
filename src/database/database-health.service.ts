@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectConnection } from '@nestjs/mongoose';
-import { Connection } from 'mongoose';
+import { Connection, ConnectionStates } from 'mongoose';
 
 export interface DatabaseHealthCheck {
   status: 'healthy' | 'unhealthy' | 'degraded';
@@ -32,8 +32,8 @@ export class DatabaseHealthService {
       const readyState = this.connection.readyState;
       const readyStateText = this.getReadyStateText(readyState);
 
-      const CONNECTED_STATE = 1;
-      if (readyState !== CONNECTED_STATE) {
+      if (readyState !== ConnectionStates.connected) {
+        // CONNECTED state
         return {
           status: 'unhealthy',
           message: `Database connection is ${readyStateText}`,
@@ -70,7 +70,7 @@ export class DatabaseHealthService {
       );
 
       return {
-        status: 'unhealthy',
+        status: 'unhealthy' as const,
         message: `Database health check failed: ${error instanceof Error ? error.message : String(error)}`,
         details: {
           readyState: this.connection.readyState,
@@ -116,11 +116,11 @@ export class DatabaseHealthService {
    * Convert mongoose connection ready state to human-readable text
    */
   private getReadyStateText(readyState: number): string {
-    const states = {
-      0: 'disconnected',
-      1: 'connected',
-      2: 'connecting',
-      3: 'disconnecting',
+    const states: Record<number, string> = {
+      [ConnectionStates.disconnected]: 'disconnected',
+      [ConnectionStates.connected]: 'connected',
+      [ConnectionStates.connecting]: 'connecting',
+      [ConnectionStates.disconnecting]: 'disconnecting',
     };
     return states[readyState] || 'unknown';
   }
@@ -134,9 +134,8 @@ export class DatabaseHealthService {
     readyStateText: string;
   } {
     const readyState = this.connection.readyState;
-    const CONNECTED_STATE = 1;
     return {
-      isConnected: readyState === CONNECTED_STATE,
+      isConnected: readyState === ConnectionStates.connected,
       readyState,
       readyStateText: this.getReadyStateText(readyState),
     };
@@ -147,8 +146,7 @@ export class DatabaseHealthService {
    */
   async waitForConnection(timeoutMs: number = 10000): Promise<boolean> {
     return new Promise((resolve) => {
-      const CONNECTED_STATE = 1;
-      if (this.connection.readyState === CONNECTED_STATE) {
+      if (this.connection.readyState === ConnectionStates.connected) {
         resolve(true);
         return;
       }

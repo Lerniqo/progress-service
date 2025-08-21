@@ -5,26 +5,18 @@ import {
   // Schemas and Documents
   ProgressEvent,
   ProgressEventDocument,
-  
+
   // Event Data Types
   EventData,
   QuizAttemptEventData,
   VideoWatchEventData,
   AITutorInteractionEventData,
-  
+
   // Enums
   EventType,
-  
+
   // Utility Types and Constants
   SCHEMA_TOKENS,
-  CreateProgressEventPayload,
-  ProgressEventQueryOptions,
-  TypedProgressEvent,
-  
-  // Type Guards
-  isQuizAttemptEventData,
-  isVideoWatchEventData,
-  isAITutorInteractionEventData,
 } from '../schemas';
 
 /**
@@ -161,7 +153,16 @@ export class ProgressEventsService {
       skip?: number;
     },
   ): Promise<ProgressEventDocument[]> {
-    const query: any = { userId };
+    const query: {
+      userId: string;
+      eventType?: EventType;
+      courseId?: string;
+      moduleId?: string;
+      timestamp?: {
+        $gte?: Date;
+        $lte?: Date;
+      };
+    } = { userId };
 
     if (options?.eventType) query.eventType = options.eventType;
     if (options?.courseId) query.courseId = options.courseId;
@@ -214,21 +215,24 @@ export class ProgressEventsService {
 
     for (const event of events) {
       switch (event.eventType) {
-        case EventType.QUIZ_ATTEMPT:
+        case EventType.QUIZ_ATTEMPT: {
           summary.quizAttempts++;
           const quizData = event.eventData as QuizAttemptEventData;
           totalQuizScore += quizData.score;
           break;
+        }
 
-        case EventType.VIDEO_WATCH:
+        case EventType.VIDEO_WATCH: {
           summary.videosWatched++;
           const videoData = event.eventData as VideoWatchEventData;
           summary.totalVideoTime += videoData.watchedDuration;
           break;
+        }
 
-        case EventType.AI_TUTOR_INTERACTION:
+        case EventType.AI_TUTOR_INTERACTION: {
           summary.tutorInteractions++;
           break;
+        }
       }
     }
 

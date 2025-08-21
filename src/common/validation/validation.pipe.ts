@@ -22,7 +22,11 @@ export function createValidationPipe(): ValidationPipe {
     exceptionFactory: (validationErrors: ValidationError[] = []) => {
       // Custom error formatting for better API responses
       const formatError = (error: ValidationError): any => {
-        const result: any = {
+        const result: {
+          property: string;
+          constraints: Record<string, string>;
+          children?: unknown[];
+        } = {
           property: error.property,
           constraints: error.constraints || {},
         };

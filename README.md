@@ -48,11 +48,14 @@ This project uses MongoDB as its database, running in a Docker container. Follow
    APP_PORT=3000
 
    # MongoDB Configuration
-   MONGODB_HOST=localhost
-   MONGODB_PORT=27017
-   MONGODB_USERNAME=admin
-   MONGODB_PASSWORD=password123
-   MONGODB_DATABASE=progress_service
+   # For local development without authentication:
+   MONGODB_URI=mongodb://localhost:27017/progress_service
+   
+   # For authenticated connections:
+   # MONGODB_URI=mongodb://username:password@localhost:27017/progress_service?authSource=admin
+   
+   # For MongoDB Atlas:
+   # MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/progress_service?retryWrites=true&w=majority
    ```
 
 ### Running with Docker Compose

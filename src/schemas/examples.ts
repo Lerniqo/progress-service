@@ -1,6 +1,6 @@
 /**
  * Schema Usage Examples
- * 
+ *
  * This file demonstrates how to use the improved schemas structure
  * with all the new features and type safety.
  */
@@ -20,8 +20,6 @@ import {
   TypedProgressEvent,
   isQuizAttemptEventData,
   isVideoWatchEventData,
-  QuizAttemptEventData,
-  VideoWatchEventData,
 } from '../schemas';
 
 @Injectable()
@@ -30,7 +28,7 @@ export class SchemaUsageExamples {
     // Using schema tokens for consistent injection
     @InjectModel(SCHEMA_TOKENS.PROGRESS_EVENT)
     private progressEventModel: Model<ProgressEventDocument>,
-    
+
     @InjectModel(SCHEMA_TOKENS.PROGRESS)
     private progressModel: Model<ProgressDocument>,
   ) {}
@@ -51,15 +49,15 @@ export class SchemaUsageExamples {
         attemptNumber: 1,
         answers: [
           { questionId: 'q1', selectedOption: 'A' },
-          { questionId: 'q2', selectedOption: 'C' }
+          { questionId: 'q2', selectedOption: 'C' },
         ],
         timeSpent: 120,
-        maxScore: 100
+        maxScore: 100,
       },
       metadata: {
         userAgent: 'Mozilla/5.0...',
-        source: 'web'
-      }
+        source: 'web',
+      },
     };
 
     return await this.progressEventModel.create(payload);
@@ -68,17 +66,27 @@ export class SchemaUsageExamples {
   /**
    * Example 2: Type-safe queries using options interface
    */
-  async findUserEvents(options: ProgressEventQueryOptions): Promise<ProgressEventDocument[]> {
-    const query: any = {};
-    
+  async findEventsWithQuery(
+    options: ProgressEventQueryOptions,
+  ): Promise<ProgressEventDocument[]> {
+    const query: {
+      userId?: string;
+      courseId?: string;
+      eventType?: EventType | { $in: EventType[] };
+      timestamp?: {
+        $gte?: Date;
+        $lte?: Date;
+      };
+    } = {};
+
     if (options.userId) query.userId = options.userId;
     if (options.courseId) query.courseId = options.courseId;
     if (options.eventType) {
-      query.eventType = Array.isArray(options.eventType) 
+      query.eventType = Array.isArray(options.eventType)
         ? { $in: options.eventType }
         : options.eventType;
     }
-    
+
     if (options.startDate || options.endDate) {
       query.timestamp = {};
       if (options.startDate) query.timestamp.$gte = options.startDate;
@@ -98,22 +106,22 @@ export class SchemaUsageExamples {
   /**
    * Example 3: Type guards for runtime type safety
    */
-  async processEvent(event: ProgressEventDocument): Promise<string> {
+  processEvent(event: ProgressEventDocument): string {
     // Type guards provide runtime type safety
     if (isQuizAttemptEventData(event.eventType, event.eventData)) {
       // event.eventData is now typed as QuizAttemptEventData
       const score = event.eventData.score;
       const maxScore = event.eventData.maxScore || 100;
       const percentage = (score / maxScore) * 100;
-      
+
       return `Quiz completed with ${percentage}% score`;
     }
-    
+
     if (isVideoWatchEventData(event.eventType, event.eventData)) {
       // event.eventData is now typed as VideoWatchEventData
       const watchPercentage = event.eventData.watchPercentage || 0;
       const completed = event.eventData.completed ? 'completed' : 'in progress';
-      
+
       return `Video ${watchPercentage}% watched (${completed})`;
     }
 
@@ -125,17 +133,26 @@ export class SchemaUsageExamples {
    */
   async getUserRecentEvents(userId: string): Promise<ProgressEventDocument[]> {
     // Using static method defined in schema
-    return await (this.progressEventModel as any).findByUserId(userId, 20);
+    return await (
+      this.progressEventModel as Model<ProgressEventDocument> & {
+        findByUserId: (
+          userId: string,
+          limit: number,
+        ) => Promise<ProgressEventDocument[]>;
+      }
+    ).findByUserId(userId, 20);
   }
 
   /**
    * Example 5: Using typed progress event
    */
-  async getTypedQuizEvents(userId: string): Promise<TypedProgressEvent<EventType.QUIZ_ATTEMPT>[]> {
+  async getTypedQuizEvents(
+    userId: string,
+  ): Promise<TypedProgressEvent<EventType.QUIZ_ATTEMPT>[]> {
     const events = await this.progressEventModel
       .find({
         userId,
-        eventType: EventType.QUIZ_ATTEMPT
+        eventType: EventType.QUIZ_ATTEMPT,
       })
       .exec();
 
@@ -148,18 +165,20 @@ export class SchemaUsageExamples {
    */
   async getCollectionStats(): Promise<any> {
     // Using collection name constants for collection operations
-    const progressEventsCount = await this.progressEventModel.countDocuments().exec();
+    const progressEventsCount = await this.progressEventModel
+      .countDocuments()
+      .exec();
     const progressCount = await this.progressModel.countDocuments().exec();
 
     return {
       progressEvents: {
         count: progressEventsCount,
-        collectionName: COLLECTION_NAMES.PROGRESS_EVENTS
+        collectionName: COLLECTION_NAMES.PROGRESS_EVENTS,
       },
       progress: {
         count: progressCount,
-        collectionName: COLLECTION_NAMES.PROGRESS
-      }
+        collectionName: COLLECTION_NAMES.PROGRESS,
+      },
     };
   }
 
@@ -175,11 +194,19 @@ export class SchemaUsageExamples {
       return {
         completionPercentage: progress.completionPercentage,
         // Virtual fields are automatically available
-        isCompleted: (progress as any).isCompleted,
-        averageSessionTime: (progress as any).averageSessionTime,
+        isCompleted: (
+          progress as unknown as {
+            isCompleted: boolean;
+          }
+        ).isCompleted,
+        averageSessionTime: (
+          progress as unknown as {
+            averageSessionTime: number;
+          }
+        ).averageSessionTime,
         // Regular fields
         totalTimeSpent: progress.totalTimeSpent,
-        completedLessons: progress.completedLessons
+        completedLessons: progress.completedLessons,
       };
     }
 
@@ -196,12 +223,23 @@ export class SchemaUsageExamples {
 
     if (progress) {
       // Using instance method defined in schema
-      await (progress as any).addCompletedLesson(lessonId);
-      
+      await (
+        progress as unknown as {
+          addCompletedLesson: (lessonId: string) => Promise<void>;
+        }
+      ).addCompletedLesson(lessonId);
+
       // Calculate new completion percentage
-      const newPercentage = Math.min(100, progress.completedLessons.length * 10);
-      await (progress as any).updateProgress(newPercentage);
-      
+      const newPercentage = Math.min(
+        100,
+        progress.completedLessons.length * 10,
+      );
+      await (
+        progress as unknown as {
+          updateProgress: (percentage: number) => Promise<void>;
+        }
+      ).updateProgress(newPercentage);
+
       return progress;
     }
 

@@ -26,7 +26,13 @@ export const pinoConfig: Params = {
     },
     timestamp: () => `,"timestamp":"${new Date().toISOString()}"`,
     serializers: {
-      req: (req: any) => ({
+      req: (req: {
+        method: string;
+        url: string;
+        headers: Record<string, string>;
+        remoteAddress: string;
+        remotePort: number;
+      }) => ({
         method: req.method,
         url: req.url,
         headers: {
@@ -36,7 +42,7 @@ export const pinoConfig: Params = {
         remoteAddress: req.remoteAddress,
         remotePort: req.remotePort,
       }),
-      res: (res: any) => ({
+      res: (res: { statusCode: number }) => ({
         statusCode: res.statusCode,
       }),
     },

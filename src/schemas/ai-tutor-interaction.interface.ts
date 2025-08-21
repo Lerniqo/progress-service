@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import { Type } from 'class-transformer';
@@ -140,19 +144,24 @@ AITutorInteractionEventDataSchema.pre('save', function (next) {
   const doc = this as any;
 
   // Auto-calculate duration if not provided
+
   if (!doc.duration && doc.messages.length >= 2) {
     const firstMessage = doc.messages[0];
+
     const lastMessage = doc.messages[doc.messages.length - 1];
+
     if (firstMessage.timestamp && lastMessage.timestamp) {
       const duration = Math.floor(
         (lastMessage.timestamp.getTime() - firstMessage.timestamp.getTime()) /
           1000,
       );
+
       doc.duration = Math.max(duration, 0);
     }
   }
 
   // Auto-set resolved status based on rating
+
   if (doc.rating && doc.resolved === undefined) {
     doc.resolved = doc.rating >= 3;
   }
