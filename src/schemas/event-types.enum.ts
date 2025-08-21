@@ -1,0 +1,20 @@
+/**
+ * Enum defining all possible event types for progress tracking
+ */
+export enum EventType {
+  QUIZ_ATTEMPT = 'QUIZ_ATTEMPT',
+  VIDEO_WATCH = 'VIDEO_WATCH',
+  AI_TUTOR_INTERACTION = 'AI_TUTOR_INTERACTION',
+  LESSON_COMPLETION = 'LESSON_COMPLETION',
+  COURSE_ENROLLMENT = 'COURSE_ENROLLMENT',
+  MODULE_START = 'MODULE_START',
+  MODULE_COMPLETION = 'MODULE_COMPLETION',
+  ASSIGNMENT_SUBMISSION = 'ASSIGNMENT_SUBMISSION',
+  DISCUSSION_POST = 'DISCUSSION_POST',
+  RESOURCE_ACCESS = 'RESOURCE_ACCESS',
+}
+
+/**
+ * Array of all event types for validation purposes
+ */
+export const EVENT_TYPES = Object.values(EventType);
