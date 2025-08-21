@@ -4,11 +4,9 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { DatabaseConfigService } from './database-config.service';
 import { DatabaseHealthService } from './database-health.service';
 import {
-  Progress,
-  ProgressSchema,
   ProgressEvent,
   ProgressEventSchema,
-} from '../schemas/progress.schema';
+} from '../schemas/progress-events.schema';
 
 @Module({
   imports: [
@@ -36,7 +34,6 @@ import {
       inject: [ConfigService],
     }),
     MongooseModule.forFeature([
-      { name: Progress.name, schema: ProgressSchema },
       { name: ProgressEvent.name, schema: ProgressEventSchema },
     ]),
   ],
