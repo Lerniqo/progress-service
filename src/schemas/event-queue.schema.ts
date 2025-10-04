@@ -3,9 +3,9 @@ import { Document } from 'mongoose';
 import { IsString, IsOptional, IsDate, IsObject } from 'class-validator';
 import * as eventDataBaseSchema from './event-data-base.schema';
 
-@Schema({ 
+@Schema({
   timestamps: true,
-  collection: 'event_queue' 
+  collection: 'event_queue',
 })
 export class EventQueue {
   @IsString()

@@ -43,9 +43,11 @@ describe('Events Module Integration Tests', () => {
 
     // Create comprehensive mocks
     const loggerMock = MockConfigurations.createPinoLoggerMock();
-    
+
     // Create proper constructor functions for Mongoose models
-    const MockEventQueueModel = jest.fn().mockImplementation(() => mockDocument) as any;
+    const MockEventQueueModel = jest
+      .fn()
+      .mockImplementation(() => mockDocument) as any;
     MockEventQueueModel.countDocuments = jest.fn();
     MockEventQueueModel.findById = jest.fn();
     MockEventQueueModel.deleteOne = jest.fn();
@@ -92,7 +94,7 @@ describe('Events Module Integration Tests', () => {
       // Arrange
       const event = TestDataFactory.createQuizAttemptEvent();
       const mockQueueId = 'integration-queue-123';
-      
+
       // Mock the save operation to return a document with _id
       mockDocument.save.mockResolvedValue({
         _id: mockQueueId,
@@ -106,29 +108,29 @@ describe('Events Module Integration Tests', () => {
       // Assert - Verify full flow
       expect(result.queueId).toBe(mockQueueId);
       TestAssertions.assertEventResponse(result, mockQueueId);
-      
+
       // Verify logging at each level
       expect(logger.info).toHaveBeenCalledWith(
         expect.objectContaining({
           eventType: event.eventType,
           timestamp: event.timestamp,
         }),
-        'Ingesting event'
+        'Ingesting event',
       );
-      
+
       expect(logger.info).toHaveBeenCalledWith(
         expect.objectContaining({
           eventType: event.eventType,
         }),
-        'Received event for processing'
+        'Received event for processing',
       );
-      
+
       expect(logger.info).toHaveBeenCalledWith(
         expect.objectContaining({
           queueId: mockQueueId,
           eventType: event.eventType,
         }),
-        'Event added to processing queue'
+        'Event added to processing queue',
       );
     });
 
@@ -136,7 +138,7 @@ describe('Events Module Integration Tests', () => {
       // Arrange
       const event = TestDataFactory.createVideoWatchEvent();
       const mockQueueId = 'lifecycle-queue-456';
-      
+
       // Setup queue storage
       mockDocument.save.mockResolvedValue({
         _id: mockQueueId,
@@ -167,7 +169,9 @@ describe('Events Module Integration Tests', () => {
       expect(ingestResult.queueId).toBe(mockQueueId);
       expect(eventQueueModel.findById).toHaveBeenCalledWith(mockQueueId);
       expect(mockEventDocument.save).toHaveBeenCalled();
-      expect(eventQueueModel.deleteOne).toHaveBeenCalledWith({ _id: mockQueueId });
+      expect(eventQueueModel.deleteOne).toHaveBeenCalledWith({
+        _id: mockQueueId,
+      });
     });
   });
 
@@ -180,35 +184,37 @@ describe('Events Module Integration Tests', () => {
 
       // Act & Assert
       await expect(controller.ingestEvent(event)).rejects.toThrow(dbError);
-      
+
       // Verify error logging at service level
       expect(logger.error).toHaveBeenCalledWith(
         expect.objectContaining({
           error: dbError.message,
           eventType: event.eventType,
         }),
-        'Failed to enqueue event'
+        'Failed to enqueue event',
       );
     });
 
     it('should handle service layer errors gracefully', async () => {
       // Arrange
       const event = TestDataFactory.createMinimalEvent();
-      
+
       // Mock service to throw error
-      jest.spyOn(eventQueueService, 'enqueueEvent').mockRejectedValue(
-        new Error('Service unavailable')
-      );
+      jest
+        .spyOn(eventQueueService, 'enqueueEvent')
+        .mockRejectedValue(new Error('Service unavailable'));
 
       // Act & Assert
-      await expect(controller.ingestEvent(event)).rejects.toThrow('Service unavailable');
-      
+      await expect(controller.ingestEvent(event)).rejects.toThrow(
+        'Service unavailable',
+      );
+
       // Verify controller still logs the attempt
       expect(logger.info).toHaveBeenCalledWith(
         expect.objectContaining({
           eventType: event.eventType,
         }),
-        'Ingesting event'
+        'Ingesting event',
       );
     });
   });
@@ -217,16 +223,19 @@ describe('Events Module Integration Tests', () => {
     it('should process events within acceptable time limits', async () => {
       // Arrange
       const event = TestDataFactory.createQuizAttemptEvent();
-      const performanceBenchmark = PerformanceTestUtils.createPerformanceBenchmark(50); // 50ms max
-      
+      const performanceBenchmark =
+        PerformanceTestUtils.createPerformanceBenchmark(50); // 50ms max
+
       mockDocument.save.mockResolvedValue({
         _id: 'perf-test-123',
       });
 
       // Act & Measure
-      const { duration } = await PerformanceTestUtils.measureExecutionTime(async () => {
-        return await controller.ingestEvent(event);
-      });
+      const { duration } = await PerformanceTestUtils.measureExecutionTime(
+        async () => {
+          return await controller.ingestEvent(event);
+        },
+      );
 
       // Assert
       performanceBenchmark.assertPerformance(duration);
@@ -236,17 +245,21 @@ describe('Events Module Integration Tests', () => {
       // Arrange
       const events = TestDataFactory.createEventBatch(10);
       const mockQueueIds = events.map((_, index) => `concurrent-${index}`);
-      
+
       // Setup mocks for concurrent processing
-      mockDocument.save
-        .mockImplementation(async () => ({
+      mockDocument.save.mockImplementation(() =>
+        Promise.resolve({
           _id: mockQueueIds[mockDocument.save.mock.calls.length - 1],
-        }));
+        }),
+      );
 
       // Act
-      const { result: results, duration } = await PerformanceTestUtils.measureExecutionTime(async () => {
-        return await Promise.all(events.map(event => controller.ingestEvent(event)));
-      });
+      const { result: results, duration } =
+        await PerformanceTestUtils.measureExecutionTime(async () => {
+          return await Promise.all(
+            events.map((event) => controller.ingestEvent(event)),
+          );
+        });
 
       // Assert
       expect(results).toHaveLength(10);
@@ -258,7 +271,9 @@ describe('Events Module Integration Tests', () => {
   describe('Statistics Integration', () => {
     it('should provide accurate queue statistics through controller', async () => {
       // Arrange
-      const expectedStats = MockResponseFactory.createQueueStatsResponse({ total: 25 });
+      MockResponseFactory.createQueueStatsResponse({
+        total: 25,
+      });
       eventQueueModel.countDocuments.mockResolvedValue(25);
 
       // Act
@@ -307,7 +322,7 @@ describe('Events Module Integration Tests', () => {
         expect.objectContaining({
           eventType: EventType.QUIZ_ATTEMPT,
         }),
-        'Ingesting event'
+        'Ingesting event',
       );
     });
 
@@ -338,7 +353,7 @@ describe('Events Module Integration Tests', () => {
         expect.objectContaining({
           eventType: EventType.VIDEO_WATCH,
         }),
-        'Ingesting event'
+        'Ingesting event',
       );
     });
 
@@ -369,7 +384,7 @@ describe('Events Module Integration Tests', () => {
         expect.objectContaining({
           eventType: EventType.AI_TUTOR_INTERACTION,
         }),
-        'Ingesting event'
+        'Ingesting event',
       );
     });
   });

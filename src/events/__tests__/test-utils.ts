@@ -67,7 +67,9 @@ export class TestDataFactory {
   /**
    * Creates an AI tutor interaction event for testing
    */
-  static createAITutorInteractionEvent(overrides: Partial<dto.Event> = {}): dto.Event {
+  static createAITutorInteractionEvent(
+    overrides: Partial<dto.Event> = {},
+  ): dto.Event {
     return {
       eventType: EventType.AI_TUTOR_INTERACTION,
       eventData: {
@@ -93,7 +95,10 @@ export class TestDataFactory {
   /**
    * Creates an event with minimal required fields
    */
-  static createMinimalEvent(eventType: EventType = EventType.QUIZ_ATTEMPT, userId: string = 'test-user'): dto.Event {
+  static createMinimalEvent(
+    eventType: EventType = EventType.QUIZ_ATTEMPT,
+    userId: string = 'test-user',
+  ): dto.Event {
     return {
       eventType,
       eventData: { userId },
@@ -106,6 +111,7 @@ export class TestDataFactory {
    */
   static createEventWithoutTimestamp(): Omit<dto.Event, 'timestamp'> {
     const event = this.createQuizAttemptEvent();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { timestamp, ...eventWithoutTimestamp } = event;
     return eventWithoutTimestamp;
   }
@@ -113,7 +119,10 @@ export class TestDataFactory {
   /**
    * Creates multiple events for batch testing
    */
-  static createEventBatch(count: number, baseEvent?: Partial<dto.Event>): dto.Event[] {
+  static createEventBatch(
+    count: number,
+    baseEvent?: Partial<dto.Event>,
+  ): dto.Event[] {
     return Array.from({ length: count }, (_, index) => ({
       ...this.createQuizAttemptEvent(baseEvent),
       eventData: {
@@ -302,7 +311,7 @@ export class MockConfigurations {
     return {
       // Constructor mock
       ...jest.fn().mockImplementation(() => mockDocument),
-      
+
       // Static methods
       find: jest.fn(),
       findOne: jest.fn(),
@@ -317,7 +326,7 @@ export class MockConfigurations {
       deleteMany: jest.fn(),
       countDocuments: jest.fn(),
       aggregate: jest.fn(),
-      
+
       // Document instance
       mockDocument,
     };
@@ -335,7 +344,7 @@ export class TestAssertions {
     logger: jest.Mocked<any>,
     method: 'info' | 'error' | 'warn' | 'debug',
     expectedData: any,
-    expectedMessage: string
+    expectedMessage: string,
   ): void {
     expect(logger[method]).toHaveBeenCalledWith(expectedData, expectedMessage);
   }
@@ -343,16 +352,16 @@ export class TestAssertions {
   /**
    * Asserts that an event response has the correct structure
    */
-  static assertEventResponse(
-    response: any,
-    expectedQueueId?: string
-  ): void {
+  static assertEventResponse(response: any, expectedQueueId?: string): void {
     expect(response).toHaveProperty('queueId');
     expect(response).toHaveProperty('status', 'accepted');
-    expect(response).toHaveProperty('message', 'Event has been queued for processing');
+    expect(response).toHaveProperty(
+      'message',
+      'Event has been queued for processing',
+    );
     expect(response).toHaveProperty('timestamp');
     expect(response.timestamp).toBeInstanceOf(Date);
-    
+
     if (expectedQueueId) {
       expect(response.queueId).toBe(expectedQueueId);
     }
@@ -364,7 +373,7 @@ export class TestAssertions {
   static assertQueueStats(stats: any, expectedTotal?: number): void {
     expect(stats).toHaveProperty('total');
     expect(typeof stats.total).toBe('number');
-    
+
     if (expectedTotal !== undefined) {
       expect(stats.total).toBe(expectedTotal);
     }
@@ -389,12 +398,14 @@ export class PerformanceTestUtils {
   /**
    * Measures execution time of an async function
    */
-  static async measureExecutionTime<T>(fn: () => Promise<T>): Promise<{ result: T; duration: number }> {
+  static async measureExecutionTime<T>(
+    fn: () => Promise<T>,
+  ): Promise<{ result: T; duration: number }> {
     const start = process.hrtime.bigint();
     const result = await fn();
     const end = process.hrtime.bigint();
     const duration = Number(end - start) / 1000000; // Convert to milliseconds
-    
+
     return { result, duration };
   }
 

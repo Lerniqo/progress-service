@@ -5,9 +5,7 @@ import { EventsService } from './events.service';
 import { EventQueueService } from './event-queue.service';
 
 @Module({
-  imports: [
-    SchemasModule,
-  ],
+  imports: [SchemasModule],
   controllers: [EventsController],
   providers: [EventsService, EventQueueService],
   exports: [EventsService, EventQueueService],

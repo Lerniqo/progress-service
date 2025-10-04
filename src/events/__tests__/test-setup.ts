@@ -4,7 +4,6 @@
  */
 
 import { TestingModule } from '@nestjs/testing';
-import { PinoLogger } from 'nestjs-pino';
 
 /**
  * Global test setup utilities
@@ -56,6 +55,7 @@ export class TestSetup {
  * Custom Jest matchers for events module
  */
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace jest {
     interface Matchers<R> {
       toBeValidEventResponse(): R;
@@ -68,14 +68,13 @@ declare global {
 // Extend Jest matchers
 expect.extend({
   toBeValidEventResponse(received) {
-    const pass = (
+    const pass =
       received &&
       typeof received === 'object' &&
       typeof received.queueId === 'string' &&
       received.status === 'accepted' &&
       received.message === 'Event has been queued for processing' &&
-      received.timestamp instanceof Date
-    );
+      received.timestamp instanceof Date;
 
     if (pass) {
       return {
@@ -93,12 +92,11 @@ expect.extend({
   },
 
   toBeValidQueueStats(received) {
-    const pass = (
+    const pass =
       received &&
       typeof received === 'object' &&
       typeof received.total === 'number' &&
-      received.total >= 0
-    );
+      received.total >= 0;
 
     if (pass) {
       return {
@@ -115,9 +113,14 @@ expect.extend({
     }
   },
 
-  toHaveBeenLoggedWith(mockLogger, level: string, expectedData: any, expectedMessage: string) {
+  toHaveBeenLoggedWith(
+    mockLogger,
+    level: string,
+    expectedData: any,
+    expectedMessage: string,
+  ) {
     const loggerMethod = mockLogger[level];
-    
+
     if (!loggerMethod || typeof loggerMethod.mock === 'undefined') {
       return {
         message: () => `Logger method '${level}' is not a mock function`,
@@ -126,10 +129,11 @@ expect.extend({
     }
 
     const calls = loggerMethod.mock.calls;
-    const matchingCall = calls.find(call => 
-      call.length >= 2 &&
-      this.utils.stringify(call[0]) === this.utils.stringify(expectedData) &&
-      call[1] === expectedMessage
+    const matchingCall = calls.find(
+      (call) =>
+        call.length >= 2 &&
+        this.utils.stringify(call[0]) === this.utils.stringify(expectedData) &&
+        call[1] === expectedMessage,
     );
 
     if (matchingCall) {
@@ -141,7 +145,7 @@ expect.extend({
     } else {
       return {
         message: () =>
-          `expected logger.${level} to have been called with ${this.utils.printExpected(expectedData)} and ${this.utils.printExpected(expectedMessage)}\n\nActual calls:\n${calls.map(call => `  - ${this.utils.stringify(call)}`).join('\n')}`,
+          `expected logger.${level} to have been called with ${this.utils.printExpected(expectedData)} and ${this.utils.printExpected(expectedMessage)}\n\nActual calls:\n${calls.map((call) => `  - ${this.utils.stringify(call)}`).join('\n')}`,
         pass: false,
       };
     }
@@ -159,7 +163,9 @@ export class TestDatabase {
     return {
       ...data,
       _id: data._id || 'mock-document-id',
-      save: jest.fn().mockResolvedValue({ ...data, _id: data._id || 'mock-document-id' }),
+      save: jest
+        .fn()
+        .mockResolvedValue({ ...data, _id: data._id || 'mock-document-id' }),
       toObject: jest.fn().mockReturnValue(data),
       toJSON: jest.fn().mockReturnValue(data),
       remove: jest.fn().mockResolvedValue(true),
@@ -250,16 +256,16 @@ export const TEST_CONFIG = {
   UNIT_TEST_TIMEOUT: 5000,
   INTEGRATION_TEST_TIMEOUT: 10000,
   E2E_TEST_TIMEOUT: 30000,
-  
+
   // Test data limits
   MAX_TEST_EVENTS: 100,
   MAX_CONCURRENT_TESTS: 10,
-  
+
   // Mock configuration
   MOCK_USER_ID: 'test-user-123',
   MOCK_COURSE_ID: 'test-course-456',
   MOCK_SESSION_ID: 'test-session-789',
-  
+
   // Performance thresholds
   MAX_PROCESSING_TIME_MS: 100,
   MAX_CONCURRENT_PROCESSING_TIME_MS: 500,

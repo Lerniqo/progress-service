@@ -1,7 +1,37 @@
 import { EventType } from '../src/schemas/event-types.enum';
-import { QuizAttemptEventData } from '../src/schemas/quiz-attempt.interface';
-import { VideoWatchEventData } from '../src/schemas/video-watch.interface';
-import { AITutorInteractionEventData } from '../src/schemas/ai-tutor-interaction.interface';
+import { EventDataBase } from '../src/schemas/event-data-base.schema';
+
+// Define event data types (these interfaces don't exist yet in the project)
+interface QuizAttemptEventData extends EventDataBase {
+  quizId: string;
+  score: number;
+  maxScore: number;
+  attemptNumber: number;
+  answers?: Array<{ questionId: string; selectedOption: string }>;
+  timeSpent?: number;
+}
+
+interface VideoWatchEventData extends EventDataBase {
+  videoId: string;
+  watchedDuration?: number;
+  totalDuration?: number;
+  watchPercentage: number;
+  currentPosition?: number;
+  quality?: string;
+  playbackSpeed?: number;
+  completed: boolean;
+  duration?: number;
+}
+
+interface AITutorInteractionEventData extends EventDataBase {
+  sessionId: string;
+  messages: Array<{ sender: string; content: string; timestamp: Date }>;
+  topic?: string;
+  duration?: number;
+  rating?: number;
+  feedback?: string;
+  resolved?: boolean;
+}
 
 /**
  * Standalone test to demonstrate the TypeScript interfaces and schemas

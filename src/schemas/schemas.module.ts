@@ -1,5 +1,8 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { EventSchema } from './events.schema';
+import { QuizeAttemptSchema } from './quize-attempt-data.schema';
+import { EventQueueSchema } from './event-queue.schema';
 
 /**
  * SchemasModule - Centralized module for all MongoDB schemas
@@ -12,9 +15,15 @@ import { MongooseModule } from '@nestjs/mongoose';
 @Module({
   imports: [
     MongooseModule.forFeature([
-      { name: 'Event', schema: require('./events.schema').EventSchema },
-      { name: 'QuizeAttemptData', schema: require('./quize-attempt-data.schema').QuizeAttemptSchema },
-      { name: 'EventQueue', schema: require('./event-queue.schema').EventQueueSchema },
+      { name: 'Event', schema: EventSchema },
+      {
+        name: 'QuizeAttemptData',
+        schema: QuizeAttemptSchema,
+      },
+      {
+        name: 'EventQueue',
+        schema: EventQueueSchema,
+      },
     ]),
   ],
   exports: [

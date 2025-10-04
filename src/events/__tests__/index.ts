@@ -132,7 +132,7 @@ export const TestingBestPractices = {
     '✅ Use beforeEach/afterEach for setup and cleanup',
     '✅ Keep tests independent and deterministic',
   ],
-  
+
   integrationTests: [
     '✅ Test the interaction between multiple components',
     '✅ Use real implementations where possible',
@@ -141,7 +141,7 @@ export const TestingBestPractices = {
     '✅ Test error propagation between layers',
     '✅ Include performance assertions for critical paths',
   ],
-  
+
   mockingGuidelines: [
     '✅ Mock external services and databases',
     '✅ Use typed mocks for better IntelliSense',
@@ -150,7 +150,7 @@ export const TestingBestPractices = {
     '✅ Use factory functions for consistent mock data',
     '✅ Mock at the boundary of your system',
   ],
-  
+
   testStructure: [
     '✅ Group related tests with describe blocks',
     '✅ Use nested describe blocks for different scenarios',

@@ -89,14 +89,14 @@ describe('EventsService', () => {
           eventType: mockEvent.eventType,
           timestamp: mockEvent.timestamp,
         },
-        'Received event for processing'
+        'Received event for processing',
       );
       expect(logger.info).toHaveBeenCalledWith(
         {
           queueId: mockQueueId,
           eventType: mockEvent.eventType,
         },
-        'Event added to processing queue'
+        'Event added to processing queue',
       );
 
       expect(result).toEqual({
@@ -120,7 +120,9 @@ describe('EventsService', () => {
       const result = await service.processEvent(videoWatchEvent);
 
       // Assert
-      expect(eventQueueService.enqueueEvent).toHaveBeenCalledWith(videoWatchEvent);
+      expect(eventQueueService.enqueueEvent).toHaveBeenCalledWith(
+        videoWatchEvent,
+      );
       expect(result.queueId).toBe(mockQueueId);
       expect(result.status).toBe('accepted');
     });
@@ -139,7 +141,9 @@ describe('EventsService', () => {
       const result = await service.processEvent(eventWithoutMetadata);
 
       // Assert
-      expect(eventQueueService.enqueueEvent).toHaveBeenCalledWith(eventWithoutMetadata);
+      expect(eventQueueService.enqueueEvent).toHaveBeenCalledWith(
+        eventWithoutMetadata,
+      );
       expect(result.queueId).toBe(mockQueueId);
     });
 
@@ -156,7 +160,7 @@ describe('EventsService', () => {
           error: error.message,
           eventType: mockEvent.eventType,
         },
-        'Failed to queue event for processing'
+        'Failed to queue event for processing',
       );
     });
 
@@ -166,13 +170,15 @@ describe('EventsService', () => {
       eventQueueService.enqueueEvent.mockRejectedValue(customError);
 
       // Act & Assert
-      await expect(service.processEvent(mockEvent)).rejects.toThrow('Queue capacity exceeded');
+      await expect(service.processEvent(mockEvent)).rejects.toThrow(
+        'Queue capacity exceeded',
+      );
       expect(logger.error).toHaveBeenCalledWith(
         {
           error: 'Queue capacity exceeded',
           eventType: mockEvent.eventType,
         },
-        'Failed to queue event for processing'
+        'Failed to queue event for processing',
       );
     });
 
@@ -188,8 +194,12 @@ describe('EventsService', () => {
       // Assert
       const afterTime = new Date();
       expect(result.timestamp).toBeInstanceOf(Date);
-      expect(result.timestamp.getTime()).toBeGreaterThanOrEqual(beforeTime.getTime());
-      expect(result.timestamp.getTime()).toBeLessThanOrEqual(afterTime.getTime());
+      expect(result.timestamp.getTime()).toBeGreaterThanOrEqual(
+        beforeTime.getTime(),
+      );
+      expect(result.timestamp.getTime()).toBeLessThanOrEqual(
+        afterTime.getTime(),
+      );
     });
   });
 

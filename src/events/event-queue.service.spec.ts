@@ -41,7 +41,9 @@ describe('EventQueueService', () => {
 
   beforeEach(async () => {
     // Create constructor function that returns mockQueuedEvent
-    const MockEventQueueModel = jest.fn().mockImplementation(() => mockQueuedEvent) as any;
+    const MockEventQueueModel = jest
+      .fn()
+      .mockImplementation(() => mockQueuedEvent) as any;
     MockEventQueueModel.countDocuments = jest.fn();
     MockEventQueueModel.findById = jest.fn();
     MockEventQueueModel.deleteOne = jest.fn();
@@ -117,7 +119,7 @@ describe('EventQueueService', () => {
           eventType: mockEvent.eventType,
           userId: 'user123',
         },
-        'Event added to queue'
+        'Event added to queue',
       );
     });
 
@@ -141,7 +143,7 @@ describe('EventQueueService', () => {
         expect.objectContaining({
           userId: 'extracted-user-123',
         }),
-        'Event added to queue'
+        'Event added to queue',
       );
     });
 
@@ -165,7 +167,7 @@ describe('EventQueueService', () => {
         expect.objectContaining({
           userId: 'nested-user-456',
         }),
-        'Event added to queue'
+        'Event added to queue',
       );
     });
 
@@ -189,7 +191,7 @@ describe('EventQueueService', () => {
         expect.objectContaining({
           userId: 'unknown',
         }),
-        'Event added to queue'
+        'Event added to queue',
       );
     });
 
@@ -205,7 +207,7 @@ describe('EventQueueService', () => {
           error: error.message,
           eventType: mockEvent.eventType,
         },
-        'Failed to enqueue event'
+        'Failed to enqueue event',
       );
     });
 
@@ -230,7 +232,7 @@ describe('EventQueueService', () => {
         expect.objectContaining({
           eventType: EventType.VIDEO_WATCH,
         }),
-        'Event added to queue'
+        'Event added to queue',
       );
     });
   });
@@ -293,14 +295,16 @@ describe('EventQueueService', () => {
       // Assert
       expect(eventQueueModel.findById).toHaveBeenCalledWith(mockEventId);
       expect(mockSavedDocument.save).toHaveBeenCalled();
-      expect(eventQueueModel.deleteOne).toHaveBeenCalledWith({ _id: mockEventId });
+      expect(eventQueueModel.deleteOne).toHaveBeenCalledWith({
+        _id: mockEventId,
+      });
       expect(logger.info).toHaveBeenCalledWith(
         {
           eventId: mockEventId,
           eventType: EventType.QUIZ_ATTEMPT,
           userId: 'user123',
         },
-        'Event processed successfully'
+        'Event processed successfully',
       );
     });
 
@@ -310,7 +314,7 @@ describe('EventQueueService', () => {
 
       // Act & Assert
       await expect(service.processEvent(mockEventId)).rejects.toThrow(
-        `Event not found: ${mockEventId}`
+        `Event not found: ${mockEventId}`,
       );
     });
 
@@ -326,17 +330,21 @@ describe('EventQueueService', () => {
 
       eventQueueModel.findById.mockResolvedValue(mockFoundEvent);
       const saveError = new Error('Document save failed');
-      const mockSavedDocument = { save: jest.fn().mockRejectedValue(saveError) };
+      const mockSavedDocument = {
+        save: jest.fn().mockRejectedValue(saveError),
+      };
       (eventModel as any).mockImplementation(() => mockSavedDocument);
 
       // Act & Assert
-      await expect(service.processEvent(mockEventId)).rejects.toThrow(saveError);
+      await expect(service.processEvent(mockEventId)).rejects.toThrow(
+        saveError,
+      );
       expect(logger.error).toHaveBeenCalledWith(
         {
           eventId: mockEventId,
           error: saveError.message,
         },
-        'Error processing event'
+        'Error processing event',
       );
     });
 
@@ -353,18 +361,20 @@ describe('EventQueueService', () => {
       eventQueueModel.findById.mockResolvedValue(mockFoundEvent);
       const mockSavedDocument = { save: jest.fn().mockResolvedValue({}) };
       (eventModel as any).mockImplementation(() => mockSavedDocument);
-      
+
       const deleteError = new Error('Queue deletion failed');
       eventQueueModel.deleteOne.mockRejectedValue(deleteError);
 
       // Act & Assert
-      await expect(service.processEvent(mockEventId)).rejects.toThrow(deleteError);
+      await expect(service.processEvent(mockEventId)).rejects.toThrow(
+        deleteError,
+      );
       expect(logger.error).toHaveBeenCalledWith(
         {
           eventId: mockEventId,
           error: deleteError.message,
         },
-        'Error processing event'
+        'Error processing event',
       );
     });
 
@@ -420,7 +430,7 @@ describe('EventQueueService', () => {
         expect.objectContaining({
           userId: 'direct-user-123',
         }),
-        'Event added to queue'
+        'Event added to queue',
       );
     });
 
@@ -442,7 +452,7 @@ describe('EventQueueService', () => {
         expect.objectContaining({
           userId: 'nested-user-456',
         }),
-        'Event added to queue'
+        'Event added to queue',
       );
     });
 
@@ -464,15 +474,15 @@ describe('EventQueueService', () => {
         expect.objectContaining({
           userId: 'unknown',
         }),
-        'Event added to queue'
+        'Event added to queue',
       );
     });
 
     it('should prioritize direct userId over nested user.id', async () => {
       // Arrange
-      const eventData = { 
-        userId: 'direct-user-123', 
-        user: { id: 'nested-user-456' } 
+      const eventData = {
+        userId: 'direct-user-123',
+        user: { id: 'nested-user-456' },
       };
       const event = { ...mockEvent, eventData };
       mockQueuedEvent.save.mockResolvedValue({
@@ -489,7 +499,7 @@ describe('EventQueueService', () => {
         expect.objectContaining({
           userId: 'direct-user-123',
         }),
-        'Event added to queue'
+        'Event added to queue',
       );
     });
   });
