@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { ProgressEvent, ProgressEventSchema } from './progress-event.schema';
-import { Progress, ProgressSchema } from './progress.schema';
+import { EventSchema } from './events.schema';
+import { QuizeAttemptSchema } from './quize-attempt-data.schema';
+import { EventQueueSchema } from './event-queue.schema';
 
 /**
  * SchemasModule - Centralized module for all MongoDB schemas
@@ -14,15 +15,14 @@ import { Progress, ProgressSchema } from './progress.schema';
 @Module({
   imports: [
     MongooseModule.forFeature([
+      { name: 'Event', schema: EventSchema },
       {
-        name: ProgressEvent.name,
-        schema: ProgressEventSchema,
-        collection: 'progress_events', // Explicit collection name
+        name: 'QuizeAttemptData',
+        schema: QuizeAttemptSchema,
       },
       {
-        name: Progress.name,
-        schema: ProgressSchema,
-        collection: 'progress', // Explicit collection name
+        name: 'EventQueue',
+        schema: EventQueueSchema,
       },
     ]),
   ],
@@ -36,8 +36,9 @@ export class SchemasModule {
    */
   static get SCHEMA_NAMES() {
     return {
-      PROGRESS_EVENT: ProgressEvent.name,
-      PROGRESS: Progress.name,
+      PROGRESS_EVENT: 'Event',
+      PROGRESS: 'Progress',
+      EVENT_QUEUE: 'EventQueue',
     } as const;
   }
 
@@ -48,6 +49,7 @@ export class SchemasModule {
     return {
       PROGRESS_EVENTS: 'progress_events',
       PROGRESS: 'progress',
+      EVENT_QUEUE: 'event_queue',
     } as const;
   }
 }
