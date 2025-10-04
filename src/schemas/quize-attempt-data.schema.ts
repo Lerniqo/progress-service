@@ -1,5 +1,4 @@
 import { Prop, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
 import { EventDataBase } from './event-data-base.schema';
 import {
   IsString,

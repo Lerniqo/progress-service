@@ -247,11 +247,11 @@ describe('Events Module Integration Tests', () => {
       const mockQueueIds = events.map((_, index) => `concurrent-${index}`);
 
       // Setup mocks for concurrent processing
-      mockDocument.save.mockImplementation(() =>
-        Promise.resolve({
+      mockDocument.save.mockImplementation(() => {
+        return Promise.resolve({
           _id: mockQueueIds[mockDocument.save.mock.calls.length - 1],
-        }),
-      );
+        });
+      });
 
       // Act
       const { result: results, duration } =
