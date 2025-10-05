@@ -7,6 +7,7 @@ import { CommonModule } from './common/common.module';
 import { FiltersModule } from './common/filters/filters.module';
 import { DatabaseModule } from './database/database.module';
 import { HealthModule } from './health/health.module';
+import { KafkaModule } from './kafka/kafka.module';
 
 import { SchemasModule } from './schemas/schemas.module';
 import { EventsModule } from './events/events.module';
@@ -26,6 +27,7 @@ import { pinoConfig } from './common/logging/pino.config';
     CommonModule,
     FiltersModule,
     DatabaseModule,
+    KafkaModule,
     SchemasModule,
     HealthModule,
     EventsModule,

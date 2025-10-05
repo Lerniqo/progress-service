@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseHealthService } from '../database/database-health.service';
+import { KafkaHealthService } from '../kafka/kafka-health.service';
 
 export interface HealthCheckResponse {
   status: string;
@@ -10,14 +11,24 @@ export interface HealthCheckResponse {
     status: string;
     message: string;
   };
+  kafka?: {
+    status: string;
+    producer: boolean;
+    consumer: boolean;
+    details?: any;
+  };
 }
 
 @Injectable()
 export class HealthService {
-  constructor(private readonly databaseHealthService: DatabaseHealthService) {}
+  constructor(
+    private readonly databaseHealthService: DatabaseHealthService,
+    private readonly kafkaHealthService: KafkaHealthService,
+  ) {}
 
   async getHealth(): Promise<HealthCheckResponse> {
     const dbHealth = await this.databaseHealthService.checkHealth();
+    const kafkaHealth = await this.kafkaHealthService.isHealthy();
 
     return {
       status: 'ok',
@@ -27,6 +38,12 @@ export class HealthService {
       database: {
         status: dbHealth.status,
         message: dbHealth.message,
+      },
+      kafka: {
+        status: kafkaHealth.status,
+        producer: kafkaHealth.producer,
+        consumer: kafkaHealth.consumer,
+        details: kafkaHealth.details,
       },
     };
   }
