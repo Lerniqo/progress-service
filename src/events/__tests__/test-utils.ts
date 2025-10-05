@@ -25,11 +25,11 @@ export class TestDataFactory {
         attemptDuration: 300,
         ...overrides.eventData,
       },
-      metaData: {
+      metadata: {
         userAgent: 'Mozilla/5.0 (Test Browser)',
         sessionId: 'session-123',
         ipAddress: '192.168.1.1',
-        ...overrides.metaData,
+        ...overrides.metadata,
       },
       timestamp: new Date('2024-01-01T10:00:00Z'),
       ...overrides,
@@ -52,12 +52,12 @@ export class TestDataFactory {
         watchPercentage: 40,
         ...overrides.eventData,
       },
-      metaData: {
+      metadata: {
         userAgent: 'Mozilla/5.0 (Test Browser)',
         sessionId: 'session-456',
         playbackSpeed: 1.0,
         quality: '720p',
-        ...overrides.metaData,
+        ...overrides.metadata,
       },
       timestamp: new Date('2024-01-01T11:00:00Z'),
       ...overrides,
@@ -81,11 +81,11 @@ export class TestDataFactory {
         responseTime: 1200,
         ...overrides.eventData,
       },
-      metaData: {
+      metadata: {
         userAgent: 'Mozilla/5.0 (Test Browser)',
         sessionId: 'session-789',
         modelVersion: 'v2.1',
-        ...overrides.metaData,
+        ...overrides.metadata,
       },
       timestamp: new Date('2024-01-01T12:00:00Z'),
       ...overrides,

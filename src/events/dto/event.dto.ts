@@ -14,7 +14,7 @@ export class Event {
   @ApiProperty({ description: 'Optional metadata for the event' })
   @IsOptional()
   @IsObject()
-  metaData?: Record<string, any>;
+  metadata?: Record<string, any>;
 
   @ApiProperty({ description: 'Timestamp of the event' })
   @IsDateString()

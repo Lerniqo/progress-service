@@ -19,7 +19,7 @@ describe('EventsService', () => {
       score: 85,
       completed: true,
     },
-    metaData: {
+    metadata: {
       userAgent: 'Mozilla/5.0',
       sessionId: 'session123',
     },

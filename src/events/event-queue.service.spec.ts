@@ -22,7 +22,7 @@ describe('EventQueueService', () => {
       score: 85,
       completed: true,
     },
-    metaData: {
+    metadata: {
       userAgent: 'Mozilla/5.0',
       sessionId: 'session123',
     },
@@ -34,7 +34,7 @@ describe('EventQueueService', () => {
     eventType: EventType.QUIZ_ATTEMPT,
     userId: 'user123',
     eventData: mockEvent.eventData,
-    metadata: mockEvent.metaData,
+    metadata: mockEvent.metadata,
     createdAt: new Date(),
     save: jest.fn(),
   };
@@ -280,7 +280,7 @@ describe('EventQueueService', () => {
         _id: mockEventId,
         eventType: EventType.QUIZ_ATTEMPT,
         eventData: mockEvent.eventData,
-        metadata: mockEvent.metaData,
+        metadata: mockEvent.metadata,
         userId: 'user123',
       };
 
@@ -324,7 +324,7 @@ describe('EventQueueService', () => {
         _id: mockEventId,
         eventType: EventType.QUIZ_ATTEMPT,
         eventData: mockEvent.eventData,
-        metadata: mockEvent.metaData,
+        metadata: mockEvent.metadata,
         userId: 'user123',
       };
 
@@ -354,7 +354,7 @@ describe('EventQueueService', () => {
         _id: mockEventId,
         eventType: EventType.QUIZ_ATTEMPT,
         eventData: mockEvent.eventData,
-        metadata: mockEvent.metaData,
+        metadata: mockEvent.metadata,
         userId: 'user123',
       };
 

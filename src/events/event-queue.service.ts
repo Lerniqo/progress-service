@@ -26,7 +26,7 @@ export class EventQueueService {
         eventType: event.eventType,
         userId: this.extractUserId(event.eventData),
         eventData: event.eventData,
-        metadata: event.metaData,
+        metadata: event.metadata,
       });
 
       const saved = await queuedEvent.save();
@@ -79,8 +79,6 @@ export class EventQueueService {
         eventData: queuedEvent.eventData,
         metadata: queuedEvent.metadata,
         userId: queuedEvent.userId,
-        createdAt: new Date(),
-        updatedAt: new Date(),
       });
 
       await eventDocument.save();

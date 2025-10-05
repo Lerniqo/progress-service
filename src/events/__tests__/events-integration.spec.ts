@@ -145,7 +145,7 @@ describe('Events Module Integration Tests', () => {
         userId: 'test-user-123',
         eventType: event.eventType,
         eventData: event.eventData,
-        metadata: event.metaData,
+        metadata: event.metadata,
       });
 
       // Setup event processing
@@ -153,7 +153,7 @@ describe('Events Module Integration Tests', () => {
         _id: mockQueueId,
         eventType: event.eventType,
         eventData: event.eventData,
-        metadata: event.metaData,
+        metadata: event.metadata,
         userId: 'test-user-123',
       });
 
