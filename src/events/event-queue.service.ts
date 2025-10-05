@@ -1,50 +1,79 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { PinoLogger } from 'nestjs-pino/PinoLogger';
 import { EventQueueDocument } from '../schemas/event-queue.schema';
+import { KafkaService } from '../kafka/kafka.service';
 import * as dto from './dto';
 
+interface QueuedEvent {
+  id: string;
+  event: dto.Event;
+  timestamp: Date;
+  retryCount: number;
+}
+
 @Injectable()
-export class EventQueueService {
+export class EventQueueService implements OnModuleInit, OnModuleDestroy {
+  private inMemoryQueue: QueuedEvent[] = [];
+  private isProcessing = false;
+  private processingInterval: NodeJS.Timeout | null = null;
+  private eventCounter = 0;
+  private readonly PROCESSING_INTERVAL_MS = 100; // Process every 100ms
+  private readonly BATCH_SIZE = 10; // Process up to 10 events per batch
+  private readonly MAX_RETRIES = 3;
+
   constructor(
     @InjectModel('EventQueue')
     private readonly eventQueueModel: Model<EventQueueDocument>,
     @InjectModel('Event')
     private readonly eventModel: Model<any>,
+    private readonly kafkaService: KafkaService,
     private readonly logger: PinoLogger,
   ) {
     this.logger.setContext(EventQueueService.name);
   }
 
-  /**
-   * Add an event to the queue for processing
-   */
-  async enqueueEvent(event: dto.Event): Promise<string> {
-    try {
-      const queuedEvent = new this.eventQueueModel({
-        eventType: event.eventType,
-        userId: this.extractUserId(event.eventData),
-        eventData: event.eventData,
-        metadata: event.metadata,
-      });
+  onModuleInit() {
+    this.logger.info('Starting event queue processor...');
+    this.startProcessing();
+  }
 
-      const saved = await queuedEvent.save();
+  async onModuleDestroy() {
+    this.logger.info('Stopping event queue processor...');
+    this.stopProcessing();
+    // Process remaining events before shutdown
+    await this.processRemainingEvents();
+  }
+
+  /**
+   * Add an event to the in-memory queue for processing
+   */
+  enqueueEvent(event: dto.Event): string {
+    try {
+      const queuedEvent: QueuedEvent = {
+        id: `evt_${Date.now()}_${++this.eventCounter}`,
+        event,
+        timestamp: new Date(),
+        retryCount: 0,
+      };
+
+      this.inMemoryQueue.push(queuedEvent);
 
       this.logger.info(
         {
-          eventId: saved._id,
+          eventId: queuedEvent.id,
           eventType: event.eventType,
-          userId: saved.userId,
+          queueLength: this.inMemoryQueue.length,
         },
-        'Event added to queue',
+        'Event added to in-memory queue',
       );
 
-      return (saved._id as any).toString();
+      return queuedEvent.id;
     } catch (error) {
       this.logger.error(
         {
-          error: error.message,
+          error: (error as Error).message,
           eventType: event.eventType,
         },
         'Failed to enqueue event',
@@ -54,57 +83,173 @@ export class EventQueueService {
   }
 
   /**
-   * Get queue statistics
+   * Start the background processor
    */
-  async getQueueStats(): Promise<{
-    total: number;
-  }> {
-    const total = await this.eventQueueModel.countDocuments();
-    return { total };
+  private startProcessing(): void {
+    if (this.processingInterval) {
+      return;
+    }
+
+    this.processingInterval = setInterval(() => {
+      if (!this.isProcessing && this.inMemoryQueue.length > 0) {
+        void this.processBatch();
+      }
+    }, this.PROCESSING_INTERVAL_MS);
+
+    this.logger.info('Event queue processor started');
   }
 
   /**
-   * Process a queued event immediately
+   * Stop the background processor
    */
-  async processEvent(eventId: string): Promise<void> {
+  private stopProcessing(): void {
+    if (this.processingInterval) {
+      clearInterval(this.processingInterval);
+      this.processingInterval = null;
+      this.logger.info('Event queue processor stopped');
+    }
+  }
+
+  /**
+   * Process remaining events before shutdown
+   */
+  private async processRemainingEvents(): Promise<void> {
+    this.logger.info(
+      { remainingEvents: this.inMemoryQueue.length },
+      'Processing remaining events before shutdown',
+    );
+
+    while (this.inMemoryQueue.length > 0) {
+      await this.processBatch();
+    }
+
+    this.logger.info('All remaining events processed');
+  }
+
+  /**
+   * Process a batch of events from the queue
+   */
+  private async processBatch(): Promise<void> {
+    this.isProcessing = true;
+
     try {
-      const queuedEvent = await this.eventQueueModel.findById(eventId);
-      if (!queuedEvent) {
-        throw new Error(`Event not found: ${eventId}`);
-      }
+      const batch = this.inMemoryQueue.splice(0, this.BATCH_SIZE);
 
-      // Create the actual event document
-      const eventDocument = new this.eventModel({
-        eventType: queuedEvent.eventType,
-        eventData: queuedEvent.eventData,
-        metadata: queuedEvent.metadata,
-        userId: queuedEvent.userId,
-      });
-
-      await eventDocument.save();
-
-      // Remove from queue after successful processing
-      await this.eventQueueModel.deleteOne({ _id: eventId });
-
-      this.logger.info(
+      this.logger.debug(
         {
-          eventId,
-          eventType: queuedEvent.eventType,
-          userId: queuedEvent.userId,
+          batchSize: batch.length,
+          remainingInQueue: this.inMemoryQueue.length,
         },
-        'Event processed successfully',
+        'Processing event batch',
+      );
+
+      // Process events in parallel within the batch
+      await Promise.allSettled(
+        batch.map((queuedEvent) => this.processSingleEvent(queuedEvent)),
       );
     } catch (error) {
       this.logger.error(
         {
-          eventId,
-          error: error.message,
+          error: (error as Error).message,
+        },
+        'Error processing batch',
+      );
+    } finally {
+      this.isProcessing = false;
+    }
+  }
+
+  /**
+   * Process a single event: save to MongoDB and publish to Kafka
+   */
+  private async processSingleEvent(queuedEvent: QueuedEvent): Promise<void> {
+    try {
+      const { event, id } = queuedEvent;
+
+      // Step 1: Save to MongoDB
+      const eventDocument = new this.eventModel({
+        eventType: event.eventType,
+        eventData: event.eventData,
+        metadata: event.metadata,
+        userId: this.extractUserId(event.eventData),
+      });
+
+      const savedEvent = await eventDocument.save();
+
+      this.logger.info(
+        {
+          eventId: id,
+          mongoId: savedEvent._id,
+          eventType: event.eventType,
+        },
+        'Event saved to MongoDB',
+      );
+
+      // Step 2: Publish to Kafka
+      const kafkaMessage = {
+        eventId: savedEvent._id.toString(),
+        eventType: event.eventType,
+        userId: this.extractUserId(event.eventData),
+        eventData: event.eventData,
+        metadata: event.metadata,
+        timestamp: savedEvent.createdAt || new Date(),
+      };
+
+      await this.kafkaService.sendMessage('events', kafkaMessage);
+
+      this.logger.info(
+        {
+          eventId: id,
+          mongoId: savedEvent._id,
+          eventType: event.eventType,
+        },
+        'Event published to Kafka',
+      );
+    } catch (error) {
+      this.logger.error(
+        {
+          eventId: queuedEvent.id,
+          eventType: queuedEvent.event.eventType,
+          error: (error as Error).message,
+          retryCount: queuedEvent.retryCount,
         },
         'Error processing event',
       );
 
-      throw error;
+      // Retry logic
+      if (queuedEvent.retryCount < this.MAX_RETRIES) {
+        queuedEvent.retryCount++;
+        this.inMemoryQueue.push(queuedEvent); // Re-queue for retry
+        this.logger.warn(
+          {
+            eventId: queuedEvent.id,
+            retryCount: queuedEvent.retryCount,
+          },
+          'Event re-queued for retry',
+        );
+      } else {
+        this.logger.error(
+          {
+            eventId: queuedEvent.id,
+            eventType: queuedEvent.event.eventType,
+          },
+          'Event processing failed after max retries - dropping event',
+        );
+      }
     }
+  }
+
+  /**
+   * Get queue statistics
+   */
+  getQueueStats(): {
+    total: number;
+    isProcessing: boolean;
+  } {
+    return {
+      total: this.inMemoryQueue.length,
+      isProcessing: this.isProcessing,
+    };
   }
 
   /**

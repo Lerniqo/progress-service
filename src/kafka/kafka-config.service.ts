@@ -65,14 +65,16 @@ export class KafkaConfigService {
    * Get connection timeout in milliseconds
    */
   getConnectionTimeout(): number {
-    return this.configService.get<number>('KAFKA_CONNECTION_TIMEOUT', 30000);
+    const timeout = this.configService.get<string>('KAFKA_CONNECTION_TIMEOUT', '30000');
+    return parseInt(timeout, 10);
   }
 
   /**
    * Get request timeout in milliseconds
    */
   getRequestTimeout(): number {
-    return this.configService.get<number>('KAFKA_REQUEST_TIMEOUT', 30000);
+    const timeout = this.configService.get<string>('KAFKA_REQUEST_TIMEOUT', '30000');
+    return parseInt(timeout, 10);
   }
 
   /**

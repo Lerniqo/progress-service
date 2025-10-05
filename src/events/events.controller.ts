@@ -58,7 +58,7 @@ export class EventsController {
       'Ingesting event',
     );
 
-    return await this.eventsService.processEvent(event);
+    return this.eventsService.processEvent(event);
   }
 
   @Get('/stats')
@@ -77,7 +77,7 @@ export class EventsController {
       },
     },
   })
-  async getStats() {
-    return await this.eventsService.getProcessingStats();
+  getStats() {
+    return this.eventsService.getProcessingStats();
   }
 }
