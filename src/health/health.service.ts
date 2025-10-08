@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Injectable } from '@nestjs/common';
 import { DatabaseHealthService } from '../database/database-health.service';
 import { KafkaHealthService } from '../kafka/kafka-health.service';
@@ -28,7 +29,7 @@ export class HealthService {
 
   async getHealth(): Promise<HealthCheckResponse> {
     const dbHealth = await this.databaseHealthService.checkHealth();
-    const kafkaHealth = await this.kafkaHealthService.isHealthy();
+    const kafkaHealth = this.kafkaHealthService.isHealthy();
 
     return {
       status: 'ok',

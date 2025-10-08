@@ -12,7 +12,7 @@ export interface KafkaHealthCheckResponse {
 export class KafkaHealthService {
   constructor(private readonly kafkaService: KafkaService) {}
 
-  async isHealthy(): Promise<KafkaHealthCheckResponse> {
+  isHealthy(): KafkaHealthCheckResponse {
     try {
       const producerConnected = this.kafkaService.isProducerReady();
       const consumerConnected = this.kafkaService.isConsumerReady();

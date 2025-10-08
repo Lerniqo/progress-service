@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PinoLogger } from 'nestjs-pino/PinoLogger';
@@ -65,7 +66,10 @@ export class KafkaConfigService {
    * Get connection timeout in milliseconds
    */
   getConnectionTimeout(): number {
-    const timeout = this.configService.get<string>('KAFKA_CONNECTION_TIMEOUT', '30000');
+    const timeout = this.configService.get<string>(
+      'KAFKA_CONNECTION_TIMEOUT',
+      '30000',
+    );
     return parseInt(timeout, 10);
   }
 
@@ -73,7 +77,10 @@ export class KafkaConfigService {
    * Get request timeout in milliseconds
    */
   getRequestTimeout(): number {
-    const timeout = this.configService.get<string>('KAFKA_REQUEST_TIMEOUT', '30000');
+    const timeout = this.configService.get<string>(
+      'KAFKA_REQUEST_TIMEOUT',
+      '30000',
+    );
     return parseInt(timeout, 10);
   }
 

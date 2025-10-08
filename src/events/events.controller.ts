@@ -45,7 +45,7 @@ export class EventsController {
   })
   @ApiResponse({ status: 400, description: 'Invalid event data' })
   @ApiResponse({ status: 500, description: 'Internal server error' })
-  async ingestEvent(@Body() event: Event) {
+  ingestEvent(@Body() event: Event) {
     if (!event.timestamp) {
       event.timestamp = new Date();
     }
