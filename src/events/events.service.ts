@@ -17,12 +17,12 @@ export class EventsService {
    * @param event The event to process
    * @returns Promise with queue ID and HTTP 202 status
    */
-  async processEvent(event: dto.Event): Promise<{
+  processEvent(event: dto.Event): {
     queueId: string;
     status: string;
     message: string;
     timestamp: Date;
-  }> {
+  } {
     try {
       this.logger.info(
         {
@@ -33,7 +33,7 @@ export class EventsService {
       );
 
       // Add event to queue for asynchronous processing
-      const queueId = await this.eventQueueService.enqueueEvent(event);
+      const queueId = this.eventQueueService.enqueueEvent(event);
 
       this.logger.info(
         {
@@ -52,7 +52,7 @@ export class EventsService {
     } catch (error) {
       this.logger.error(
         {
-          error: error.message,
+          error: (error as Error).message,
           eventType: event.eventType,
         },
         'Failed to queue event for processing',
@@ -65,7 +65,7 @@ export class EventsService {
   /**
    * Get processing statistics
    */
-  async getProcessingStats() {
-    return await this.eventQueueService.getQueueStats();
+  getProcessingStats() {
+    return this.eventQueueService.getQueueStats();
   }
 }

@@ -45,7 +45,7 @@ export class EventsController {
   })
   @ApiResponse({ status: 400, description: 'Invalid event data' })
   @ApiResponse({ status: 500, description: 'Internal server error' })
-  async ingestEvent(@Body() event: Event) {
+  ingestEvent(@Body() event: Event) {
     if (!event.timestamp) {
       event.timestamp = new Date();
     }
@@ -58,7 +58,7 @@ export class EventsController {
       'Ingesting event',
     );
 
-    return await this.eventsService.processEvent(event);
+    return this.eventsService.processEvent(event);
   }
 
   @Get('/stats')
@@ -77,7 +77,7 @@ export class EventsController {
       },
     },
   })
-  async getStats() {
-    return await this.eventsService.getProcessingStats();
+  getStats() {
+    return this.eventsService.getProcessingStats();
   }
 }

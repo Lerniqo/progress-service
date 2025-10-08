@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { HealthController } from './health.controller';
 import { HealthService } from './health.service';
 import { DatabaseHealthService } from '../database/database-health.service';
+import { KafkaHealthService } from '../kafka/kafka-health.service';
 
 describe('HealthController', () => {
   let controller: HealthController;
@@ -15,6 +16,13 @@ describe('HealthController', () => {
       }),
     };
 
+    const mockKafkaHealthService = {
+      isHealthy: jest.fn().mockReturnValue({
+        status: 'healthy',
+        message: 'Kafka connection is healthy',
+      }),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [HealthController],
       providers: [
@@ -22,6 +30,10 @@ describe('HealthController', () => {
         {
           provide: DatabaseHealthService,
           useValue: mockDatabaseHealthService,
+        },
+        {
+          provide: KafkaHealthService,
+          useValue: mockKafkaHealthService,
         },
       ],
     }).compile();
@@ -49,6 +61,9 @@ describe('HealthController', () => {
           status: 'healthy',
           message: 'Database connection is healthy',
         },
+        kafka: expect.objectContaining({
+          status: 'healthy',
+        }),
       });
     });
 

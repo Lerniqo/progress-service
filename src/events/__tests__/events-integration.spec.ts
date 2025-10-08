@@ -8,13 +8,12 @@ import { getModelToken } from '@nestjs/mongoose';
 import { EventsController } from '../events.controller';
 import { EventsService } from '../events.service';
 import { EventQueueService } from '../event-queue.service';
+import { KafkaService } from '../../kafka/kafka.service';
 import { PinoLogger } from 'nestjs-pino';
 import { EventType } from '../../schemas/event-types.enum';
 import {
   TestDataFactory,
-  MockResponseFactory,
   MockConfigurations,
-  TestAssertions,
   PerformanceTestUtils,
 } from './test-utils';
 
@@ -24,8 +23,6 @@ describe('Events Module Integration Tests', () => {
   let eventsService: EventsService;
   let eventQueueService: EventQueueService;
   let logger: jest.Mocked<any>;
-  let eventQueueModel: jest.Mocked<any>;
-  let eventModel: jest.Mocked<any>;
   let mockDocument: any;
 
   beforeEach(async () => {
@@ -56,6 +53,13 @@ describe('Events Module Integration Tests', () => {
       save: jest.fn().mockResolvedValue({}),
     }));
 
+    // Create mock for KafkaService
+    const mockKafkaService = {
+      sendMessage: jest.fn().mockResolvedValue(undefined),
+      onModuleInit: jest.fn(),
+      onModuleDestroy: jest.fn(),
+    };
+
     module = await Test.createTestingModule({
       controllers: [EventsController],
       providers: [
@@ -73,6 +77,10 @@ describe('Events Module Integration Tests', () => {
           provide: getModelToken('Event'),
           useValue: MockEventModel,
         },
+        {
+          provide: KafkaService,
+          useValue: mockKafkaService,
+        },
       ],
     }).compile();
 
@@ -80,8 +88,6 @@ describe('Events Module Integration Tests', () => {
     eventsService = module.get<EventsService>(EventsService);
     eventQueueService = module.get<EventQueueService>(EventQueueService);
     logger = module.get(PinoLogger);
-    eventQueueModel = module.get(getModelToken('EventQueue'));
-    eventModel = module.get(getModelToken('Event'));
   });
 
   afterEach(async () => {
@@ -93,21 +99,15 @@ describe('Events Module Integration Tests', () => {
     it('should process event from controller through to queue storage', async () => {
       // Arrange
       const event = TestDataFactory.createQuizAttemptEvent();
-      const mockQueueId = 'integration-queue-123';
-
-      // Mock the save operation to return a document with _id
-      mockDocument.save.mockResolvedValue({
-        _id: mockQueueId,
-        userId: 'test-user-123',
-        eventType: event.eventType,
-      });
 
       // Act
       const result = await controller.ingestEvent(event);
 
       // Assert - Verify full flow
-      expect(result.queueId).toBe(mockQueueId);
-      TestAssertions.assertEventResponse(result, mockQueueId);
+      expect(result.queueId).toBeDefined();
+      expect(result.queueId).toMatch(/^evt_\d+_\d+$/); // In-memory queue ID pattern
+      expect(result.status).toBe('accepted');
+      expect(result.message).toBe('Event has been queued for processing');
 
       // Verify logging at each level
       expect(logger.info).toHaveBeenCalledWith(
@@ -127,10 +127,10 @@ describe('Events Module Integration Tests', () => {
 
       expect(logger.info).toHaveBeenCalledWith(
         expect.objectContaining({
-          queueId: mockQueueId,
+          eventId: result.queueId,
           eventType: event.eventType,
         }),
-        'Event added to processing queue',
+        'Event added to in-memory queue',
       );
     });
 
@@ -145,67 +145,63 @@ describe('Events Module Integration Tests', () => {
         userId: 'test-user-123',
         eventType: event.eventType,
         eventData: event.eventData,
-        metadata: event.metaData,
+        metadata: event.metadata,
       });
 
-      // Setup event processing
-      eventQueueModel.findById.mockResolvedValue({
-        _id: mockQueueId,
-        eventType: event.eventType,
-        eventData: event.eventData,
-        metadata: event.metaData,
-        userId: 'test-user-123',
-      });
-
-      const mockEventDocument = { save: jest.fn().mockResolvedValue({}) };
-      eventModel.mockImplementation(() => mockEventDocument);
-      eventQueueModel.deleteOne.mockResolvedValue({ deletedCount: 1 });
-
-      // Act - Complete lifecycle
+      // Act - Complete lifecycle (event is automatically processed by in-memory queue)
       const ingestResult = await controller.ingestEvent(event);
-      await eventQueueService.processEvent(ingestResult.queueId);
 
       // Assert
-      expect(ingestResult.queueId).toBe(mockQueueId);
-      expect(eventQueueModel.findById).toHaveBeenCalledWith(mockQueueId);
-      expect(mockEventDocument.save).toHaveBeenCalled();
-      expect(eventQueueModel.deleteOne).toHaveBeenCalledWith({
-        _id: mockQueueId,
-      });
+      expect(ingestResult.queueId).toBeDefined();
+      expect(logger.info).toHaveBeenCalledWith(
+        expect.objectContaining({
+          eventType: event.eventType,
+        }),
+        'Event added to in-memory queue',
+      );
     });
   });
 
   describe('Error Handling Integration', () => {
-    it('should propagate errors through the entire stack', async () => {
+    it('should propagate errors through the entire stack', () => {
       // Arrange
       const event = TestDataFactory.createAITutorInteractionEvent();
-      const dbError = new Error('Database connection lost');
-      mockDocument.save.mockRejectedValue(dbError);
+
+      // Mock enqueueEvent to throw error
+      const enqueueSpy = jest
+        .spyOn(eventQueueService, 'enqueueEvent')
+        .mockImplementation(() => {
+          throw new Error('Service unavailable');
+        });
 
       // Act & Assert
-      await expect(controller.ingestEvent(event)).rejects.toThrow(dbError);
+      expect(() => controller.ingestEvent(event)).toThrow(
+        'Service unavailable',
+      );
 
       // Verify error logging at service level
       expect(logger.error).toHaveBeenCalledWith(
         expect.objectContaining({
-          error: dbError.message,
+          error: 'Service unavailable',
           eventType: event.eventType,
         }),
-        'Failed to enqueue event',
+        'Failed to queue event for processing',
       );
+
+      enqueueSpy.mockRestore();
     });
 
-    it('should handle service layer errors gracefully', async () => {
+    it('should handle service layer errors gracefully', () => {
       // Arrange
       const event = TestDataFactory.createMinimalEvent();
 
       // Mock service to throw error
-      jest
-        .spyOn(eventQueueService, 'enqueueEvent')
-        .mockRejectedValue(new Error('Service unavailable'));
+      jest.spyOn(eventQueueService, 'enqueueEvent').mockImplementation(() => {
+        throw new Error('Service unavailable');
+      });
 
       // Act & Assert
-      await expect(controller.ingestEvent(event)).rejects.toThrow(
+      expect(() => controller.ingestEvent(event)).toThrow(
         'Service unavailable',
       );
 
@@ -244,14 +240,6 @@ describe('Events Module Integration Tests', () => {
     it('should handle concurrent event processing efficiently', async () => {
       // Arrange
       const events = TestDataFactory.createEventBatch(10);
-      const mockQueueIds = events.map((_, index) => `concurrent-${index}`);
-
-      // Setup mocks for concurrent processing
-      mockDocument.save.mockImplementation(() => {
-        return Promise.resolve({
-          _id: mockQueueIds[mockDocument.save.mock.calls.length - 1],
-        });
-      });
 
       // Act
       const { result: results, duration } =
@@ -264,33 +252,43 @@ describe('Events Module Integration Tests', () => {
       // Assert
       expect(results).toHaveLength(10);
       expect(duration).toBeLessThan(200); // Should handle 10 concurrent events in under 200ms
-      expect(mockDocument.save).toHaveBeenCalledTimes(10);
+      results.forEach((result) => {
+        expect(result.queueId).toMatch(/^evt_\d+_\d+$/); // Each should have a queue ID
+        expect(result.status).toBe('accepted');
+      });
     });
   });
 
   describe('Statistics Integration', () => {
     it('should provide accurate queue statistics through controller', async () => {
-      // Arrange
-      MockResponseFactory.createQueueStatsResponse({
-        total: 25,
-      });
-      eventQueueModel.countDocuments.mockResolvedValue(25);
+      // Arrange - Add some events to the queue
+      const events = TestDataFactory.createEventBatch(3);
+      await Promise.all(events.map((event) => controller.ingestEvent(event)));
 
       // Act
       const stats = await controller.getStats();
 
-      // Assert
-      TestAssertions.assertQueueStats(stats, 25);
-      expect(eventQueueModel.countDocuments).toHaveBeenCalledWith();
+      // Assert - Check stats structure
+      expect(stats).toHaveProperty('total');
+      expect(stats).toHaveProperty('isProcessing');
+      expect(typeof stats.total).toBe('number');
+      expect(typeof stats.isProcessing).toBe('boolean');
     });
 
-    it('should handle statistics errors gracefully', async () => {
-      // Arrange
-      const statsError = new Error('Statistics service unavailable');
-      eventQueueModel.countDocuments.mockRejectedValue(statsError);
+    it('should handle statistics errors gracefully', () => {
+      // Arrange - Mock getQueueStats to throw error
+      const statsSpy = jest
+        .spyOn(eventQueueService, 'getQueueStats')
+        .mockImplementation(() => {
+          throw new Error('Statistics service unavailable');
+        });
 
       // Act & Assert
-      await expect(controller.getStats()).rejects.toThrow(statsError);
+      expect(() => controller.getStats()).toThrow(
+        'Statistics service unavailable',
+      );
+
+      statsSpy.mockRestore();
     });
   });
 
@@ -308,16 +306,12 @@ describe('Events Module Integration Tests', () => {
         },
       });
 
-      mockDocument.save.mockResolvedValue({
-        _id: 'quiz-queue-123',
-        userId: 'quiz-user-123',
-      });
-
       // Act
       const result = await controller.ingestEvent(quizEvent);
 
       // Assert
-      expect(result.queueId).toBe('quiz-queue-123');
+      expect(result.queueId).toMatch(/^evt_\d+_\d+$/);
+      expect(result.status).toBe('accepted');
       expect(logger.info).toHaveBeenCalledWith(
         expect.objectContaining({
           eventType: EventType.QUIZ_ATTEMPT,
@@ -339,16 +333,12 @@ describe('Events Module Integration Tests', () => {
         },
       });
 
-      mockDocument.save.mockResolvedValue({
-        _id: 'video-queue-456',
-        userId: 'video-user-456',
-      });
-
       // Act
       const result = await controller.ingestEvent(videoEvent);
 
       // Assert
-      expect(result.queueId).toBe('video-queue-456');
+      expect(result.queueId).toMatch(/^evt_\d+_\d+$/);
+      expect(result.status).toBe('accepted');
       expect(logger.info).toHaveBeenCalledWith(
         expect.objectContaining({
           eventType: EventType.VIDEO_WATCH,
@@ -370,16 +360,12 @@ describe('Events Module Integration Tests', () => {
         },
       });
 
-      mockDocument.save.mockResolvedValue({
-        _id: 'ai-queue-789',
-        userId: 'ai-user-789',
-      });
-
       // Act
       const result = await controller.ingestEvent(aiEvent);
 
       // Assert
-      expect(result.queueId).toBe('ai-queue-789');
+      expect(result.queueId).toMatch(/^evt_\d+_\d+$/);
+      expect(result.status).toBe('accepted');
       expect(logger.info).toHaveBeenCalledWith(
         expect.objectContaining({
           eventType: EventType.AI_TUTOR_INTERACTION,

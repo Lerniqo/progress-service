@@ -1,13 +1,13 @@
-import { Prop, SchemaFactory } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
-import { IsString, IsDate, IsObject, IsOptional } from 'class-validator';
+import { IsString, IsObject, IsOptional } from 'class-validator';
 import * as eventDataBaseSchema from './event-data-base.schema';
 
+@Schema({
+  timestamps: true,
+  collection: 'events',
+})
 export class Event {
-  @IsString()
-  @Prop({ required: true })
-  eventId: string;
-
   @IsString()
   @Prop({ required: true })
   eventType: string;
@@ -23,14 +23,6 @@ export class Event {
   @IsObject()
   @Prop({ type: Object })
   metadata?: Record<string, any>;
-
-  @IsDate()
-  @Prop({ required: true })
-  createdAt: Date;
-
-  @IsDate()
-  @Prop({ required: true })
-  updatedAt: Date;
 }
 
 export type EventDocument = Event & Document;

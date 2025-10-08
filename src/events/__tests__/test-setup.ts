@@ -216,7 +216,7 @@ export class TestValidation {
       typeof event === 'object' &&
       typeof event.eventType === 'string' &&
       typeof event.eventData === 'object' &&
-      (event.metaData === undefined || typeof event.metaData === 'object') &&
+      (event.metadata === undefined || typeof event.metadata === 'object') &&
       (event.timestamp === undefined || event.timestamp instanceof Date)
     );
   }
