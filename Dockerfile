@@ -47,6 +47,9 @@ RUN adduser -S nestjs -u 1001
 RUN chown -R nestjs:nodejs /app
 USER nestjs
 
+# Set environment to production
+ENV NODE_ENV=production
+
 # Expose port
 EXPOSE 3000
 
