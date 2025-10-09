@@ -35,9 +35,8 @@ RUN pnpm install --frozen-lockfile --prod
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
 
-# Copy environment and config files (if they exist)
-COPY .env* ./
-COPY tsconfig*.json ./
+# Note: Environment variables should be passed at runtime via docker-compose or docker run
+# Do not copy .env files into the image for security and flexibility
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs

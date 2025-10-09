@@ -22,9 +22,10 @@ services:
     container_name: progress-service-app
     restart: unless-stopped
     ports:
-      - "${APP_PORT:-3000}:3001"
+      - "${APP_PORT:-3000}:3000"
     environment:
       - NODE_ENV=production
+      - APP_PORT=3000
       - MONGODB_URI=mongodb://${MONGODB_USERNAME:-admin}:${MONGODB_PASSWORD:-password123}@mongodb:27017/${MONGODB_DATABASE:-progress_service}?authSource=admin
     depends_on:
       - mongodb
