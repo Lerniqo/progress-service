@@ -21,8 +21,8 @@ RUN pnpm run build
 # Production stage
 FROM node:18-alpine AS production
 
-# Install pnpm
-RUN npm install -g pnpm
+# Install pnpm and curl for healthcheck
+RUN npm install -g pnpm && apk add --no-cache curl
 
 WORKDIR /app
 
@@ -34,6 +34,10 @@ RUN pnpm install --frozen-lockfile --prod
 
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
+
+# Copy environment and config files (if they exist)
+COPY .env* ./
+COPY tsconfig*.json ./
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs
