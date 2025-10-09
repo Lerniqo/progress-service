@@ -48,3 +48,5 @@ export class QuizeAttemptData implements EventDataBase {
 export type QuizeAttemptDocument = QuizeAttemptData & Document;
 export const QuizeAttemptSchema =
   SchemaFactory.createForClass(QuizeAttemptData);
+
+

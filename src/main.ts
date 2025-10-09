@@ -9,6 +9,16 @@ async function bootstrap() {
   // Use Pino logger
   app.useLogger(app.get(Logger));
 
+  app.enableCors({
+    origin: [
+      'http://localhost:3000', // Local development
+      'https://main.ddwyki3l42m0e.amplifyapp.com', // Add your production frontend domain
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    credentials: true, // Enable if you need to send cookies/auth headers
+  });
+
   // Apply our enhanced global validation pipe
   app.useGlobalPipes(createValidationPipe());
 
