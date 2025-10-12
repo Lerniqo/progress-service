@@ -18,6 +18,12 @@ services:
       - API_PREFIX=${API_PREFIX:-api/v1}
       - JWT_SECRET=${JWT_SECRET}
       - PORT=3000
+      - KAFKA_BROKERS=${KAFKA_BROKERS}
+      - KAFKA_CLIENT_ID=${KAFKA_CLIENT_ID:-progress-service}
+      - KAFKA_CONNECTION_TIMEOUT=${KAFKA_CONNECTION_TIMEOUT:-30000}
+      - KAFKA_REQUEST_TIMEOUT=${KAFKA_REQUEST_TIMEOUT:-30000}
+      - KAFKA_RETRY_ATTEMPTS=${KAFKA_RETRY_ATTEMPTS:-8}
+      - KAFKA_RETRY_DELAY=${KAFKA_RETRY_DELAY:-300}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
       interval: 30s

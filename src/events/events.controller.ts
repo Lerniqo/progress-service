@@ -80,4 +80,26 @@ export class EventsController {
   getStats() {
     return this.eventsService.getProcessingStats();
   }
+  @Get('/user/:userId?eventType=:eventType&limit=:limit')
+  @ApiOperation({ summary: 'Get events by user ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of events for the specified user',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          eventId: { type: 'string' },
+          userId: { type: 'string' },
+          eventType: { type: 'string' },
+          timestamp: { type: 'string', format: 'date-time' },
+          details: { type: 'object' },
+        },
+      },
+    },
+  })
+  getEventsByUserId(userId: string, eventType?: string, limit?: number) {
+    return this.eventsService.getEventsByUserId(userId, eventType, limit);
+  }
 }
