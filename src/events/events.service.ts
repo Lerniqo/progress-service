@@ -16,6 +16,18 @@ export class EventsService {
     this.logger.setContext(EventsService.name);
   }
 
+  async isUserDoneSufficientQuestions(
+    userId: string,
+  ): Promise<{ isPersonalizationReady: boolean }> {
+    const filter: { userId: string } = { userId };
+    return await this.eventModel
+      .find(filter)
+      .countDocuments()
+      .then((count) => {
+        return { isPersonalizationReady: count >= 50 };
+      });
+  }
+
   async getEventsByUserId(userId: string, eventType?: string, limit = 100) {
     const filter: { userId: string; eventType?: string } = { userId };
     if (eventType) {

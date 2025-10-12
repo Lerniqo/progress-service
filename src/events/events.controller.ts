@@ -5,11 +5,13 @@ import {
   HttpCode,
   HttpStatus,
   Get,
+  Req,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { EventsService } from './events.service';
 import { PinoLogger } from 'nestjs-pino';
 import { Event } from './dto';
+import type { Request } from 'express';
 
 @ApiTags('Events')
 @Controller('events')
@@ -101,5 +103,22 @@ export class EventsController {
   })
   getEventsByUserId(userId: string, eventType?: string, limit?: number) {
     return this.eventsService.getEventsByUserId(userId, eventType, limit);
+  }
+
+  @Get('/events/user/is-personalization-ready')
+  async isUserDoneSufficientQuestions(@Req() req: Request): Promise<{
+    isPersonalizationReady: boolean;
+  }> {
+    const userId = req.headers['x-user-id'] as string;
+    if (!userId) {
+      this.logger.error('User ID not provided in request headers');
+      throw new Error('User ID is required');
+    }
+
+    this.logger.info(
+      { userId },
+      'Checking if user has completed sufficient questions for personalization',
+    );
+    return await this.eventsService.isUserDoneSufficientQuestions(userId);
   }
 }

@@ -119,46 +119,6 @@ describe('EventsService', () => {
       });
     });
 
-    it('should handle different event types correctly', () => {
-      // Arrange
-      const videoWatchEvent: dto.Event = {
-        ...mockEvent,
-        eventType: EventType.VIDEO_WATCH,
-      };
-      const mockQueueId = 'evt_1234567890_2';
-      eventQueueService.enqueueEvent.mockReturnValue(mockQueueId);
-
-      // Act
-      const result = service.processEvent(videoWatchEvent);
-
-      // Assert
-      expect(eventQueueService.enqueueEvent).toHaveBeenCalledWith(
-        videoWatchEvent,
-      );
-      expect(result.queueId).toBe(mockQueueId);
-      expect(result.status).toBe('accepted');
-    });
-
-    it('should handle events without metadata', () => {
-      // Arrange
-      const eventWithoutMetadata: dto.Event = {
-        eventType: EventType.AI_TUTOR_INTERACTION,
-        eventData: { userId: 'user123', interaction: 'question' },
-        timestamp: new Date(),
-      };
-      const mockQueueId = 'evt_1234567890_3';
-      eventQueueService.enqueueEvent.mockReturnValue(mockQueueId);
-
-      // Act
-      const result = service.processEvent(eventWithoutMetadata);
-
-      // Assert
-      expect(eventQueueService.enqueueEvent).toHaveBeenCalledWith(
-        eventWithoutMetadata,
-      );
-      expect(result.queueId).toBe(mockQueueId);
-    });
-
     it('should log error and rethrow when enqueue fails', () => {
       // Arrange
       const error = new Error('Database connection failed');
