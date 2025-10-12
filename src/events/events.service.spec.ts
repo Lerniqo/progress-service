@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { getModelToken } from '@nestjs/mongoose';
 import { EventsService } from './events.service';
 import { EventQueueService } from './event-queue.service';
 import { PinoLogger } from 'nestjs-pino/PinoLogger';
@@ -40,6 +41,13 @@ describe('EventsService', () => {
       debug: jest.fn(),
     };
 
+    const mockEventModel = {
+      find: jest.fn(),
+      findOne: jest.fn(),
+      create: jest.fn(),
+      save: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         EventsService,
@@ -50,6 +58,10 @@ describe('EventsService', () => {
         {
           provide: PinoLogger,
           useValue: mockLogger,
+        },
+        {
+          provide: getModelToken('Event'),
+          useValue: mockEventModel,
         },
       ],
     }).compile();

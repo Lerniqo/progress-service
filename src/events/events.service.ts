@@ -4,11 +4,10 @@ import { Model } from 'mongoose';
 import { PinoLogger } from 'nestjs-pino/PinoLogger';
 import * as dto from './dto';
 import { EventQueueService } from './event-queue.service';
-import { EventDocument } from 'src/schemas';
+import { EventDocument } from '../schemas/index.js';
 
 @Injectable()
 export class EventsService {
-  
   constructor(
     private readonly logger: PinoLogger,
     private readonly eventQueueService: EventQueueService,
@@ -18,11 +17,11 @@ export class EventsService {
   }
 
   async getEventsByUserId(userId: string, eventType?: string, limit = 100) {
-    const filter: any = { userId };
+    const filter: { userId: string; eventType?: string } = { userId };
     if (eventType) {
       filter.eventType = eventType;
     }
-    
+
     return this.eventModel
       .find(filter)
       .limit(limit)
