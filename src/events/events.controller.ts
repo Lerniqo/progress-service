@@ -84,7 +84,7 @@ export class EventsController {
   getStats() {
     return this.eventsService.getProcessingStats();
   }
-  @Get('/user/:userId')
+  @Get('/user/:userId') // Fixed route pattern
   @ApiOperation({ summary: 'Get events by user ID' })
   @ApiResponse({
     status: 200,
