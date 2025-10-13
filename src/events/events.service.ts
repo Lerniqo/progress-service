@@ -16,6 +16,29 @@ export class EventsService {
     this.logger.setContext(EventsService.name);
   }
 
+  async getUserEventStats(userId: string, eventType: string) {
+    const filter: { userId: string; eventType: string } = { userId, eventType };
+    const result = await this.eventModel
+      .aggregate([
+        { $match: filter },
+        { $unwind: '$eventData.concepts' },
+        {
+          $group: {
+            _id: '$eventData.concepts',
+            eventType: { $first: '$eventType' },
+            totalEvents: { $sum: 1 },
+          },
+        },
+      ])
+      .exec();
+    const latestEvents = await this.eventModel
+      .find(filter)
+      .sort({ timestamp: -1 })
+      .limit(100)
+      .exec();
+    return { conceptStats: result, latestEvents };
+  }
+
   async isUserDoneSufficientQuestions(
     userId: string,
   ): Promise<{ isPersonalizationReady: boolean }> {

@@ -121,4 +121,35 @@ export class EventsController {
     );
     return await this.eventsService.isUserDoneSufficientQuestions(userId);
   }
+
+  @Get('/user/:userId/stats?eventType=:eventType')
+  @ApiOperation({ summary: 'Get user event statistics' })
+  @ApiResponse({
+    status: 200,
+    description: 'User event statistics',
+    schema: {
+      type: 'object',
+      properties: {
+        userId: { type: 'string' },
+        eventType: { type: 'string' },
+        stats: {
+          type: 'object',
+          properties: {
+            total: { type: 'number' },
+            completed: { type: 'number' },
+            failed: { type: 'number' },
+          },
+        },
+      },
+    },
+  })
+  getUserEventStats(userId: string, eventType: string) {
+    if (!userId) {
+      this.logger.error('User ID not provided in request parameters');
+      throw new Error('User ID is required');
+    }
+
+    this.logger.info({ userId, eventType }, 'Getting user event statistics');
+    return this.eventsService.getUserEventStats(userId, eventType);
+  }
 }
