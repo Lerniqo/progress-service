@@ -37,62 +37,6 @@ export class TestDataFactory {
   }
 
   /**
-   * Creates a video watch event for testing
-   */
-  static createVideoWatchEvent(overrides: Partial<dto.Event> = {}): dto.Event {
-    return {
-      eventType: EventType.VIDEO_WATCH,
-      eventData: {
-        userId: 'test-user-123',
-        videoId: 'video-456',
-        courseId: 'course-789',
-        watchDuration: 120,
-        totalDuration: 300,
-        completed: false,
-        watchPercentage: 40,
-        ...overrides.eventData,
-      },
-      metadata: {
-        userAgent: 'Mozilla/5.0 (Test Browser)',
-        sessionId: 'session-456',
-        playbackSpeed: 1.0,
-        quality: '720p',
-        ...overrides.metadata,
-      },
-      timestamp: new Date('2024-01-01T11:00:00Z'),
-      ...overrides,
-    };
-  }
-
-  /**
-   * Creates an AI tutor interaction event for testing
-   */
-  static createAITutorInteractionEvent(
-    overrides: Partial<dto.Event> = {},
-  ): dto.Event {
-    return {
-      eventType: EventType.AI_TUTOR_INTERACTION,
-      eventData: {
-        userId: 'test-user-123',
-        interactionType: 'question',
-        query: 'What is the capital of France?',
-        response: 'The capital of France is Paris.',
-        confidence: 0.95,
-        responseTime: 1200,
-        ...overrides.eventData,
-      },
-      metadata: {
-        userAgent: 'Mozilla/5.0 (Test Browser)',
-        sessionId: 'session-789',
-        modelVersion: 'v2.1',
-        ...overrides.metadata,
-      },
-      timestamp: new Date('2024-01-01T12:00:00Z'),
-      ...overrides,
-    };
-  }
-
-  /**
    * Creates an event with minimal required fields
    */
   static createMinimalEvent(
@@ -116,22 +60,7 @@ export class TestDataFactory {
     return eventWithoutTimestamp;
   }
 
-  /**
-   * Creates multiple events for batch testing
-   */
-  static createEventBatch(
-    count: number,
-    baseEvent?: Partial<dto.Event>,
-  ): dto.Event[] {
-    return Array.from({ length: count }, (_, index) => ({
-      ...this.createQuizAttemptEvent(baseEvent),
-      eventData: {
-        ...this.createQuizAttemptEvent(baseEvent).eventData,
-        userId: `user-${index + 1}`,
-      },
-      timestamp: new Date(Date.now() + index * 1000), // Different timestamps
-    }));
-  }
+
 }
 
 /**

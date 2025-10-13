@@ -49,10 +49,6 @@ export class EventDataMatchesTypeConstraint
     switch (eventType) {
       case EventType.QUIZ_ATTEMPT:
         return this.validateQuizAttemptData(eventData);
-      case EventType.VIDEO_WATCH:
-        return this.validateVideoWatchData(eventData);
-      case EventType.AI_TUTOR_INTERACTION:
-        return this.validateAITutorInteractionData(eventData);
       default:
         return true; // Allow other event types for extensibility
     }
