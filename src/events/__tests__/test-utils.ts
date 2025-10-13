@@ -60,7 +60,93 @@ export class TestDataFactory {
     return eventWithoutTimestamp;
   }
 
+  /**
+   * Creates a video watch event for testing
+   */
+  static createVideoWatchEvent(overrides: Partial<dto.Event> = {}): dto.Event {
+    return {
+      eventType: EventType.VIDEO_WATCH,
+      eventData: {
+        userId: 'test-user-123',
+        videoId: 'video-456',
+        watchDuration: 120,
+        totalDuration: 300,
+        completed: false,
+        watchPercentage: 40,
+        ...overrides.eventData,
+      },
+      metadata: {
+        userAgent: 'Mozilla/5.0 (Test Browser)',
+        sessionId: 'session-123',
+        ipAddress: '192.168.1.1',
+        ...overrides.metadata,
+      },
+      timestamp: new Date('2024-01-01T10:00:00Z'),
+      ...overrides,
+    };
+  }
 
+  /**
+   * Creates an AI tutor interaction event for testing
+   */
+  static createAITutorInteractionEvent(
+    overrides: Partial<dto.Event> = {},
+  ): dto.Event {
+    return {
+      eventType: EventType.AI_TUTOR_INTERACTION,
+      eventData: {
+        userId: 'test-user-123',
+        interactionType: 'question',
+        query: 'What is photosynthesis?',
+        response:
+          'Photosynthesis is the process by which plants convert sunlight into energy.',
+        confidence: 0.92,
+        responseTime: 1500,
+        ...overrides.eventData,
+      },
+      metadata: {
+        userAgent: 'Mozilla/5.0 (Test Browser)',
+        sessionId: 'session-123',
+        ipAddress: '192.168.1.1',
+        ...overrides.metadata,
+      },
+      timestamp: new Date('2024-01-01T10:00:00Z'),
+      ...overrides,
+    };
+  }
+
+  /**
+   * Creates a batch of events for testing concurrent processing
+   */
+  static createEventBatch(
+    count: number,
+    eventType: EventType = EventType.QUIZ_ATTEMPT,
+  ): dto.Event[] {
+    const events: dto.Event[] = [];
+    for (let i = 0; i < count; i++) {
+      let event: dto.Event;
+
+      switch (eventType) {
+        case EventType.VIDEO_WATCH:
+          event = this.createVideoWatchEvent({
+            eventData: { userId: `batch-user-${i}` },
+          });
+          break;
+        case EventType.AI_TUTOR_INTERACTION:
+          event = this.createAITutorInteractionEvent({
+            eventData: { userId: `batch-user-${i}` },
+          });
+          break;
+        default:
+          event = this.createQuizAttemptEvent({
+            eventData: { userId: `batch-user-${i}` },
+          });
+      }
+
+      events.push(event);
+    }
+    return events;
+  }
 }
 
 /**
