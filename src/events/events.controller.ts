@@ -6,6 +6,8 @@ import {
   HttpStatus,
   Get,
   Req,
+  Param,
+  Query,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { EventsService } from './events.service';
@@ -82,7 +84,7 @@ export class EventsController {
   getStats() {
     return this.eventsService.getProcessingStats();
   }
-  @Get('/user/:userId?eventType=:eventType&limit=:limit')
+  @Get('/user/:userId')
   @ApiOperation({ summary: 'Get events by user ID' })
   @ApiResponse({
     status: 200,
@@ -101,7 +103,7 @@ export class EventsController {
       },
     },
   })
-  getEventsByUserId(userId: string, eventType?: string, limit?: number) {
+  getEventsByUserId(@Param('userId') userId: string, @Query('eventType') eventType?: string, @Query('limit') limit?: number) {
     return this.eventsService.getEventsByUserId(userId, eventType, limit);
   }
 
@@ -122,7 +124,7 @@ export class EventsController {
     return await this.eventsService.isUserDoneSufficientQuestions(userId);
   }
 
-  @Get('/user/:userId/stats?eventType=:eventType')
+  @Get('/user/:userId/stats')
   @ApiOperation({ summary: 'Get user event statistics' })
   @ApiResponse({
     status: 200,
@@ -143,7 +145,7 @@ export class EventsController {
       },
     },
   })
-  getUserEventStats(userId: string, eventType: string) {
+  getUserEventStats(@Param('userId') userId: string, @Query('eventType') eventType: string) {
     if (!userId) {
       this.logger.error('User ID not provided in request parameters');
       throw new Error('User ID is required');
