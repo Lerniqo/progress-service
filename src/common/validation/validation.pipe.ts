@@ -12,8 +12,8 @@ export function createValidationPipe(): ValidationPipe {
       enableImplicitConversion: true, // Enable automatic type conversion
     },
     whitelist: true, // Strip properties that do not have decorators
-    forbidNonWhitelisted: true, // Throw error for non-whitelisted properties
-    forbidUnknownValues: true, // Throw error for unknown values
+    forbidNonWhitelisted: false, // Allow non-whitelisted properties (less strict)
+    forbidUnknownValues: false, // Allow unknown values (less strict)
     disableErrorMessages: false, // Show detailed error messages
     validationError: {
       target: false, // Don't expose the target object in validation errors
@@ -26,10 +26,16 @@ export function createValidationPipe(): ValidationPipe {
           property: string;
           constraints: Record<string, string>;
           children?: unknown[];
+          value?: any;
         } = {
           property: error.property,
           constraints: error.constraints || {},
         };
+
+        // Include the value for debugging
+        if (error.value !== undefined) {
+          result.value = error.value;
+        }
 
         if (error.children && error.children.length > 0) {
           result.children = error.children.map(formatError);
@@ -39,6 +45,9 @@ export function createValidationPipe(): ValidationPipe {
       };
 
       const formattedErrors = validationErrors.map(formatError);
+
+      // Log the detailed validation errors for debugging
+      console.log('Validation Errors:', JSON.stringify(formattedErrors, null, 2));
 
       return new BadRequestException({
         message: 'Validation failed',

@@ -4,6 +4,9 @@ FROM node:18-alpine AS builder
 # Install pnpm
 RUN npm install -g pnpm
 
+# Add build arg to bust cache
+ARG CACHE_BUST=1
+
 WORKDIR /app
 
 # Copy package files
