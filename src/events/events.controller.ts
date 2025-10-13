@@ -107,7 +107,7 @@ export class EventsController {
     return this.eventsService.getEventsByUserId(userId, eventType, limit);
   }
 
-  @Get('/events/user/is-personalization-ready')
+  @Get('/user/is-personalization-ready')
   async isUserDoneSufficientQuestions(@Req() req: Request): Promise<{
     isPersonalizationReady: boolean;
   }> {
