@@ -176,7 +176,7 @@ export class EventQueueService implements OnModuleInit, OnModuleDestroy {
         eventType: event.eventType,
         eventData: event.eventData,
         metadata: event.metadata,
-        userId: this.extractUserId(event.eventData),
+        userId: queuedEvent.event.userId,
       });
 
       const savedEvent = await eventDocument.save();
@@ -194,7 +194,7 @@ export class EventQueueService implements OnModuleInit, OnModuleDestroy {
       const kafkaMessage = {
         eventId: savedEvent._id.toString(),
         eventType: event.eventType,
-        userId: this.extractUserId(event.eventData),
+        userId: event.userId,
         eventData: event.eventData,
         metadata: event.metadata,
         timestamp: savedEvent.createdAt || new Date(),
