@@ -25,6 +25,14 @@ describe('Events Module Integration Tests', () => {
   let logger: jest.Mocked<any>;
   let mockDocument: any;
 
+  // Helper function to create mock request
+  const createMockRequest = (userId = 'test-user-123') =>
+    ({
+      headers: {
+        'x-user-id': userId,
+      },
+    }) as any;
+
   beforeEach(async () => {
     // Create a mock document that will be returned by the constructor
     mockDocument = {
@@ -96,12 +104,17 @@ describe('Events Module Integration Tests', () => {
   });
 
   describe('Full Event Processing Flow', () => {
-    it('should process event from controller through to queue storage', async () => {
+    it('should process event from controller through to queue storage', () => {
       // Arrange
       const event = TestDataFactory.createQuizAttemptEvent();
+      const mockRequest = {
+        headers: {
+          'x-user-id': 'test-user-123',
+        },
+      } as any;
 
       // Act
-      const result = await controller.ingestEvent(event);
+      const result = controller.ingestEvent(mockRequest, event);
 
       // Assert - Verify full flow
       expect(result.queueId).toBeDefined();
@@ -149,7 +162,12 @@ describe('Events Module Integration Tests', () => {
       });
 
       // Act - Complete lifecycle (event is automatically processed by in-memory queue)
-      const ingestResult = await controller.ingestEvent(event);
+      const mockRequest = {
+        headers: {
+          'x-user-id': 'test-user-123',
+        },
+      } as any;
+      const ingestResult = await controller.ingestEvent(mockRequest, event);
 
       // Assert
       expect(ingestResult.queueId).toBeDefined();
@@ -166,6 +184,11 @@ describe('Events Module Integration Tests', () => {
     it('should propagate errors through the entire stack', () => {
       // Arrange
       const event = TestDataFactory.createAITutorInteractionEvent();
+      const mockRequest = {
+        headers: {
+          'x-user-id': 'test-user-123',
+        },
+      } as any;
 
       // Mock enqueueEvent to throw error
       const enqueueSpy = jest
@@ -175,7 +198,7 @@ describe('Events Module Integration Tests', () => {
         });
 
       // Act & Assert
-      expect(() => controller.ingestEvent(event)).toThrow(
+      expect(() => controller.ingestEvent(mockRequest, event)).toThrow(
         'Service unavailable',
       );
 
@@ -194,6 +217,11 @@ describe('Events Module Integration Tests', () => {
     it('should handle service layer errors gracefully', () => {
       // Arrange
       const event = TestDataFactory.createMinimalEvent();
+      const mockRequest = {
+        headers: {
+          'x-user-id': 'test-user-123',
+        },
+      } as any;
 
       // Mock service to throw error
       jest.spyOn(eventQueueService, 'enqueueEvent').mockImplementation(() => {
@@ -201,7 +229,7 @@ describe('Events Module Integration Tests', () => {
       });
 
       // Act & Assert
-      expect(() => controller.ingestEvent(event)).toThrow(
+      expect(() => controller.ingestEvent(mockRequest, event)).toThrow(
         'Service unavailable',
       );
 
@@ -229,7 +257,7 @@ describe('Events Module Integration Tests', () => {
       // Act & Measure
       const { duration } = await PerformanceTestUtils.measureExecutionTime(
         async () => {
-          return await controller.ingestEvent(event);
+          return await controller.ingestEvent(createMockRequest(), event);
         },
       );
 
@@ -245,7 +273,9 @@ describe('Events Module Integration Tests', () => {
       const { result: results, duration } =
         await PerformanceTestUtils.measureExecutionTime(async () => {
           return await Promise.all(
-            events.map((event) => controller.ingestEvent(event)),
+            events.map((event) =>
+              controller.ingestEvent(createMockRequest(), event),
+            ),
           );
         });
 
@@ -263,10 +293,14 @@ describe('Events Module Integration Tests', () => {
     it('should provide accurate queue statistics through controller', async () => {
       // Arrange - Add some events to the queue
       const events = TestDataFactory.createEventBatch(3);
-      await Promise.all(events.map((event) => controller.ingestEvent(event)));
+      await Promise.all(
+        events.map((event) =>
+          controller.ingestEvent(createMockRequest(), event),
+        ),
+      );
 
       // Act
-      const stats = await controller.getStats();
+      const stats = controller.getStats();
 
       // Assert - Check stats structure
       expect(stats).toHaveProperty('total');
@@ -307,7 +341,10 @@ describe('Events Module Integration Tests', () => {
       });
 
       // Act
-      const result = await controller.ingestEvent(quizEvent);
+      const result = await controller.ingestEvent(
+        createMockRequest('quiz-user-123'),
+        quizEvent,
+      );
 
       // Assert
       expect(result.queueId).toMatch(/^evt_\d+_\d+$/);
@@ -334,7 +371,10 @@ describe('Events Module Integration Tests', () => {
       });
 
       // Act
-      const result = await controller.ingestEvent(videoEvent);
+      const result = await controller.ingestEvent(
+        createMockRequest('video-user-456'),
+        videoEvent,
+      );
 
       // Assert
       expect(result.queueId).toMatch(/^evt_\d+_\d+$/);
@@ -361,7 +401,10 @@ describe('Events Module Integration Tests', () => {
       });
 
       // Act
-      const result = await controller.ingestEvent(aiEvent);
+      const result = await controller.ingestEvent(
+        createMockRequest('ai-user-789'),
+        aiEvent,
+      );
 
       // Assert
       expect(result.queueId).toMatch(/^evt_\d+_\d+$/);

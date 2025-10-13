@@ -34,7 +34,7 @@ export function createValidationPipe(): ValidationPipe {
 
         // Include the value for debugging
         if (error.value !== undefined) {
-          result.value = error.value;
+          result.value = error.value as unknown;
         }
 
         if (error.children && error.children.length > 0) {
@@ -47,7 +47,10 @@ export function createValidationPipe(): ValidationPipe {
       const formattedErrors = validationErrors.map(formatError);
 
       // Log the detailed validation errors for debugging
-      console.log('Validation Errors:', JSON.stringify(formattedErrors, null, 2));
+      console.log(
+        'Validation Errors:',
+        JSON.stringify(formattedErrors, null, 2),
+      );
 
       return new BadRequestException({
         message: 'Validation failed',

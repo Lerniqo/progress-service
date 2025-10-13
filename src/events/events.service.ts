@@ -69,7 +69,10 @@ export class EventsService {
    * @param event The event to process
    * @returns Promise with queue ID and HTTP 202 status
    */
-  processEvent(event: dto.Event): {
+  processEvent(
+    event: dto.Event,
+    userId: string,
+  ): {
     queueId: string;
     status: string;
     message: string;
@@ -85,7 +88,7 @@ export class EventsService {
       );
 
       // Add event to queue for asynchronous processing
-      const queueId = this.eventQueueService.enqueueEvent(event);
+      const queueId = this.eventQueueService.enqueueEvent(event, userId);
 
       this.logger.info(
         {

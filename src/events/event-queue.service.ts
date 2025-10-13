@@ -9,10 +9,11 @@ import { PinoLogger } from 'nestjs-pino/PinoLogger';
 import { EventQueueDocument } from '../schemas/event-queue.schema';
 import { KafkaService } from '../kafka/kafka.service';
 import * as dto from './dto';
+import { Event } from '../schemas/index.js';
 
 interface QueuedEvent {
   id: string;
-  event: dto.Event;
+  event: Event;
   timestamp: Date;
   retryCount: number;
 }
@@ -53,11 +54,11 @@ export class EventQueueService implements OnModuleInit, OnModuleDestroy {
   /**
    * Add an event to the in-memory queue for processing
    */
-  enqueueEvent(event: dto.Event): string {
+  enqueueEvent(event: dto.Event, userId: string): string {
     try {
       const queuedEvent: QueuedEvent = {
         id: `evt_${Date.now()}_${++this.eventCounter}`,
-        event,
+        event: { ...event, userId },
         timestamp: new Date(),
         retryCount: 0,
       };

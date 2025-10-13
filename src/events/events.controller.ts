@@ -49,7 +49,13 @@ export class EventsController {
   })
   @ApiResponse({ status: 400, description: 'Invalid event data' })
   @ApiResponse({ status: 500, description: 'Internal server error' })
-  ingestEvent(@Body() event: Event) {
+  ingestEvent(@Req() req: Request, @Body() event: Event) {
+    const userId = req.headers['x-user-id'] as string;
+    if (!userId) {
+      this.logger.error('User ID not provided in request headers');
+      throw new Error('User ID is required');
+    }
+
     if (!event.timestamp) {
       event.timestamp = new Date();
     }
@@ -62,7 +68,7 @@ export class EventsController {
       'Ingesting event',
     );
 
-    return this.eventsService.processEvent(event);
+    return this.eventsService.processEvent(event, userId);
   }
 
   @Get('/stats')
@@ -103,7 +109,11 @@ export class EventsController {
       },
     },
   })
-  getEventsByUserId(@Param('userId') userId: string, @Query('eventType') eventType?: string, @Query('limit') limit?: number) {
+  getEventsByUserId(
+    @Param('userId') userId: string,
+    @Query('eventType') eventType?: string,
+    @Query('limit') limit?: number,
+  ) {
     return this.eventsService.getEventsByUserId(userId, eventType, limit);
   }
 
@@ -145,7 +155,10 @@ export class EventsController {
       },
     },
   })
-  getUserEventStats(@Param('userId') userId: string, @Query('eventType') eventType: string) {
+  getUserEventStats(
+    @Param('userId') userId: string,
+    @Query('eventType') eventType: string,
+  ) {
     if (!userId) {
       this.logger.error('User ID not provided in request parameters');
       throw new Error('User ID is required');

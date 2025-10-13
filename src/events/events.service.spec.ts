@@ -89,13 +89,17 @@ describe('EventsService', () => {
     it('should successfully process an event and return queue information', () => {
       // Arrange
       const mockQueueId = 'evt_1234567890_1';
+      const mockUserId = 'user123';
       eventQueueService.enqueueEvent.mockReturnValue(mockQueueId);
 
       // Act
-      const result = service.processEvent(mockEvent);
+      const result = service.processEvent(mockEvent, mockUserId);
 
       // Assert
-      expect(eventQueueService.enqueueEvent).toHaveBeenCalledWith(mockEvent);
+      expect(eventQueueService.enqueueEvent).toHaveBeenCalledWith(
+        mockEvent,
+        mockUserId,
+      );
       expect(logger.info).toHaveBeenCalledWith(
         {
           eventType: mockEvent.eventType,
@@ -127,7 +131,7 @@ describe('EventsService', () => {
       });
 
       // Act & Assert
-      expect(() => service.processEvent(mockEvent)).toThrow(error);
+      expect(() => service.processEvent(mockEvent, 'user123')).toThrow(error);
 
       expect(logger.error).toHaveBeenCalledWith(
         {
@@ -146,7 +150,7 @@ describe('EventsService', () => {
       });
 
       // Act & Assert
-      expect(() => service.processEvent(mockEvent)).toThrow(
+      expect(() => service.processEvent(mockEvent, 'user123')).toThrow(
         'Queue capacity exceeded',
       );
       expect(logger.error).toHaveBeenCalledWith(
@@ -165,7 +169,7 @@ describe('EventsService', () => {
       const beforeTime = new Date();
 
       // Act
-      const result = service.processEvent(mockEvent);
+      const result = service.processEvent(mockEvent, 'user123');
 
       // Assert
       const afterTime = new Date();

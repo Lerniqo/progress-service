@@ -4,6 +4,7 @@ import { EventsService } from './events.service';
 import { PinoLogger } from 'nestjs-pino';
 import { EventType } from '../schemas/event-types.enum';
 import { Event } from './dto';
+import { Request } from 'express';
 
 describe('EventsController', () => {
   let controller: EventsController;
@@ -33,11 +34,17 @@ describe('EventsController', () => {
     timestamp: new Date('2024-01-01T10:00:01Z'),
   };
 
+  const mockRequest: Partial<Request> = {
+    headers: {
+      'x-user-id': 'user123',
+    },
+  };
+
   beforeEach(async () => {
     const mockEventsService = {
       processEvent: jest.fn(),
       getProcessingStats: jest.fn(),
-    };
+    } as any;
 
     const mockLogger = {
       setContext: jest.fn(),
@@ -45,7 +52,7 @@ describe('EventsController', () => {
       error: jest.fn(),
       warn: jest.fn(),
       debug: jest.fn(),
-    };
+    } as any;
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [EventsController],
@@ -83,13 +90,21 @@ describe('EventsController', () => {
   describe('ingestEvent', () => {
     it('should successfully ingest an event with existing timestamp', async () => {
       // Arrange
-      eventsService.processEvent.mockResolvedValue(mockProcessResponse);
+      const mockRequest = {
+        headers: {
+          'x-user-id': 'user123',
+        },
+      } as any;
+      eventsService.processEvent.mockReturnValue(mockProcessResponse);
 
       // Act
-      const result = await controller.ingestEvent(mockEvent);
+      const result = await controller.ingestEvent(mockRequest, mockEvent);
 
       // Assert
-      expect(eventsService.processEvent).toHaveBeenCalledWith(mockEvent);
+      expect(eventsService.processEvent).toHaveBeenCalledWith(
+        mockEvent,
+        'user123',
+      );
       expect(logger.info).toHaveBeenCalledWith(
         {
           eventType: mockEvent.eventType,
@@ -100,15 +115,20 @@ describe('EventsController', () => {
       expect(result).toEqual(mockProcessResponse);
     });
 
-    it('should add timestamp when not provided', async () => {
+    it('should add timestamp when not provided', () => {
       // Arrange
       const eventWithoutTimestamp = { ...mockEvent };
       delete eventWithoutTimestamp.timestamp;
-      eventsService.processEvent.mockResolvedValue(mockProcessResponse);
+      const mockRequest = {
+        headers: {
+          'x-user-id': 'user123',
+        },
+      } as any;
+      eventsService.processEvent.mockReturnValue(mockProcessResponse);
       const beforeTime = new Date();
 
       // Act
-      const result = await controller.ingestEvent(eventWithoutTimestamp);
+      const result = controller.ingestEvent(mockRequest, eventWithoutTimestamp);
 
       // Assert
       const afterTime = new Date();
@@ -121,11 +141,12 @@ describe('EventsController', () => {
       );
       expect(eventsService.processEvent).toHaveBeenCalledWith(
         eventWithoutTimestamp,
+        'user123',
       );
       expect(result).toEqual(mockProcessResponse);
     });
 
-    it('should handle different event types', async () => {
+    it('should handle different event types', () => {
       // Arrange
       const videoWatchEvent: Event = {
         ...mockEvent,
@@ -142,13 +163,21 @@ describe('EventsController', () => {
         ...mockProcessResponse,
         queueId: 'video-queue-456',
       };
-      eventsService.processEvent.mockResolvedValue(videoResponse);
+      const mockRequest = {
+        headers: {
+          'x-user-id': 'user123',
+        },
+      } as any;
+      eventsService.processEvent.mockReturnValue(videoResponse);
 
       // Act
-      const result = await controller.ingestEvent(videoWatchEvent);
+      const result = controller.ingestEvent(mockRequest, videoWatchEvent);
 
       // Assert
-      expect(eventsService.processEvent).toHaveBeenCalledWith(videoWatchEvent);
+      expect(eventsService.processEvent).toHaveBeenCalledWith(
+        videoWatchEvent,
+        'user123',
+      );
       expect(logger.info).toHaveBeenCalledWith(
         {
           eventType: EventType.VIDEO_WATCH,
@@ -159,7 +188,7 @@ describe('EventsController', () => {
       expect(result).toEqual(videoResponse);
     });
 
-    it('should handle AI tutor interaction events', async () => {
+    it('should handle AI tutor interaction events', () => {
       // Arrange
       const aiTutorEvent: Event = {
         eventType: EventType.AI_TUTOR_INTERACTION,
@@ -175,42 +204,68 @@ describe('EventsController', () => {
         ...mockProcessResponse,
         queueId: 'ai-queue-789',
       };
-      eventsService.processEvent.mockResolvedValue(aiResponse);
+      eventsService.processEvent.mockReturnValue(aiResponse);
 
       // Act
-      const result = await controller.ingestEvent(aiTutorEvent);
+      const result = controller.ingestEvent(
+        mockRequest as Request,
+        aiTutorEvent,
+      );
 
       // Assert
-      expect(eventsService.processEvent).toHaveBeenCalledWith(aiTutorEvent);
+      expect(eventsService.processEvent).toHaveBeenCalledWith(
+        aiTutorEvent,
+        'user123',
+      );
       expect(result).toEqual(aiResponse);
     });
 
-    it('should handle events without metadata', async () => {
+    it('should handle events without metadata', () => {
       // Arrange
       const eventWithoutMetadata: Event = {
         eventType: EventType.QUIZ_ATTEMPT,
         eventData: mockEvent.eventData,
         timestamp: new Date(),
       };
-      eventsService.processEvent.mockResolvedValue(mockProcessResponse);
+      eventsService.processEvent.mockReturnValue(mockProcessResponse);
 
       // Act
-      const result = await controller.ingestEvent(eventWithoutMetadata);
+      const result = controller.ingestEvent(
+        mockRequest as Request,
+        eventWithoutMetadata,
+      );
 
       // Assert
       expect(eventsService.processEvent).toHaveBeenCalledWith(
         eventWithoutMetadata,
+        'user123',
       );
       expect(result).toEqual(mockProcessResponse);
     });
 
-    it('should propagate service errors', async () => {
+    it('should throw error when user ID is not provided', () => {
+      // Arrange
+      const mockRequestWithoutUserId: Partial<Request> = {
+        headers: {},
+      };
+
+      // Act & Assert
+      expect(() =>
+        controller.ingestEvent(mockRequestWithoutUserId as Request, mockEvent),
+      ).toThrow('User ID is required');
+    });
+
+    it('should propagate service errors', () => {
       // Arrange
       const error = new Error('Service processing failed');
-      eventsService.processEvent.mockRejectedValue(error);
+      eventsService.processEvent.mockImplementation(() => {
+        throw error;
+      });
 
       // Act & Assert
-      await expect(controller.ingestEvent(mockEvent)).rejects.toThrow(error);
+      expect(() =>
+        controller.ingestEvent(mockRequest as Request, mockEvent),
+      ).toThrow(error);
       expect(logger.info).toHaveBeenCalledWith(
         {
           eventType: mockEvent.eventType,
@@ -220,35 +275,7 @@ describe('EventsController', () => {
       );
     });
 
-    it('should log before processing even if service fails', async () => {
-      // Arrange
-      const error = new Error('Service error');
-      eventsService.processEvent.mockRejectedValue(error);
-
-      // Act & Assert
-      await expect(controller.ingestEvent(mockEvent)).rejects.toThrow(error);
-      expect(logger.info).toHaveBeenCalledWith(
-        {
-          eventType: mockEvent.eventType,
-          timestamp: mockEvent.timestamp,
-        },
-        'Ingesting event',
-      );
-      expect(eventsService.processEvent).toHaveBeenCalledWith(mockEvent);
-    });
-
-    it('should handle service timeout errors', async () => {
-      // Arrange
-      const timeoutError = new Error('Service timeout');
-      eventsService.processEvent.mockRejectedValue(timeoutError);
-
-      // Act & Assert
-      await expect(controller.ingestEvent(mockEvent)).rejects.toThrow(
-        'Service timeout',
-      );
-    });
-
-    it('should preserve all event properties when adding timestamp', async () => {
+    it('should preserve all event properties when adding timestamp', () => {
       // Arrange
       const eventWithoutTimestamp = {
         eventType: EventType.QUIZ_ATTEMPT,
@@ -265,109 +292,68 @@ describe('EventsController', () => {
           customMeta: 'meta-value',
         },
       };
-      eventsService.processEvent.mockResolvedValue(mockProcessResponse);
+      eventsService.processEvent.mockReturnValue(mockProcessResponse);
 
       // Act
-      await controller.ingestEvent(eventWithoutTimestamp);
+      controller.ingestEvent(mockRequest as Request, eventWithoutTimestamp);
 
       // Assert
-      expect(eventsService.processEvent).toHaveBeenCalledWith({
-        ...eventWithoutTimestamp,
-        timestamp: expect.any(Date),
-      });
+      expect(eventsService.processEvent).toHaveBeenCalledWith(
+        {
+          ...eventWithoutTimestamp,
+          timestamp: expect.any(Date),
+        },
+        'user123',
+      );
     });
   });
 
   describe('getStats', () => {
-    it('should return processing statistics', async () => {
+    it('should return processing statistics', () => {
       // Arrange
       const mockStats = {
         total: 100,
-        pending: 25,
-        processing: 10,
-        completed: 60,
-        failed: 5,
-        retrying: 0,
+        isProcessing: true,
       };
-      eventsService.getProcessingStats.mockResolvedValue(mockStats);
+      eventsService.getProcessingStats.mockReturnValue(mockStats);
 
       // Act
-      const result = await controller.getStats();
+      const result = controller.getStats();
 
       // Assert
       expect(eventsService.getProcessingStats).toHaveBeenCalledWith();
       expect(result).toEqual(mockStats);
     });
 
-    it('should handle empty statistics', async () => {
+    it('should handle empty statistics', () => {
       // Arrange
       const emptyStats = {
         total: 0,
-        pending: 0,
-        processing: 0,
-        completed: 0,
-        failed: 0,
-        retrying: 0,
+        isProcessing: false,
       };
-      eventsService.getProcessingStats.mockResolvedValue(emptyStats);
+      eventsService.getProcessingStats.mockReturnValue(emptyStats);
 
       // Act
-      const result = await controller.getStats();
+      const result = controller.getStats();
 
       // Assert
       expect(result).toEqual(emptyStats);
     });
 
-    it('should propagate service errors for stats', async () => {
+    it('should propagate service errors for stats', () => {
       // Arrange
       const error = new Error('Stats service error');
-      eventsService.getProcessingStats.mockRejectedValue(error);
+      eventsService.getProcessingStats.mockImplementation(() => {
+        throw error;
+      });
 
       // Act & Assert
-      await expect(controller.getStats()).rejects.toThrow(error);
-    });
-
-    it('should handle partial statistics response', async () => {
-      // Arrange
-      const partialStats = { total: 50 };
-      eventsService.getProcessingStats.mockResolvedValue(partialStats);
-
-      // Act
-      const result = await controller.getStats();
-
-      // Assert
-      expect(result).toEqual(partialStats);
-    });
-
-    it('should handle service unavailable for stats', async () => {
-      // Arrange
-      const serviceError = new Error('Service unavailable');
-      eventsService.getProcessingStats.mockRejectedValue(serviceError);
-
-      // Act & Assert
-      await expect(controller.getStats()).rejects.toThrow(
-        'Service unavailable',
-      );
-    });
-  });
-
-  describe('HTTP status codes and decorators', () => {
-    it('should use HttpStatus.ACCEPTED for ingestEvent', () => {
-      // This test verifies that the proper HTTP status decorators are used
-      // The actual HTTP status is handled by the NestJS framework based on decorators
-      const ingestMethod = controller.ingestEvent;
-      expect(ingestMethod).toBeDefined();
-    });
-
-    it('should have proper API documentation decorators', () => {
-      // This verifies the controller structure supports OpenAPI documentation
-      expect(controller).toHaveProperty('ingestEvent');
-      expect(controller).toHaveProperty('getStats');
+      expect(() => controller.getStats()).toThrow(error);
     });
   });
 
   describe('integration scenarios', () => {
-    it('should handle rapid successive event ingestion', async () => {
+    it('should handle rapid successive event ingestion', () => {
       // Arrange
       const events = [
         {
@@ -385,13 +371,13 @@ describe('EventsController', () => {
       ];
 
       eventsService.processEvent
-        .mockResolvedValueOnce({ ...mockProcessResponse, queueId: 'queue1' })
-        .mockResolvedValueOnce({ ...mockProcessResponse, queueId: 'queue2' })
-        .mockResolvedValueOnce({ ...mockProcessResponse, queueId: 'queue3' });
+        .mockReturnValueOnce({ ...mockProcessResponse, queueId: 'queue1' })
+        .mockReturnValueOnce({ ...mockProcessResponse, queueId: 'queue2' })
+        .mockReturnValueOnce({ ...mockProcessResponse, queueId: 'queue3' });
 
       // Act
-      const results = await Promise.all(
-        events.map((event) => controller.ingestEvent(event)),
+      const results = events.map((event) =>
+        controller.ingestEvent(mockRequest as Request, event),
       );
 
       // Assert
@@ -403,7 +389,7 @@ describe('EventsController', () => {
       expect(logger.info).toHaveBeenCalledTimes(3);
     });
 
-    it('should handle mixed success and failure scenarios', async () => {
+    it('should handle mixed success and failure scenarios', () => {
       // Arrange
       const successEvent = {
         ...mockEvent,
@@ -415,16 +401,21 @@ describe('EventsController', () => {
       };
 
       eventsService.processEvent
-        .mockResolvedValueOnce(mockProcessResponse)
-        .mockRejectedValueOnce(new Error('Processing failed'));
+        .mockReturnValueOnce(mockProcessResponse)
+        .mockImplementationOnce(() => {
+          throw new Error('Processing failed');
+        });
 
       // Act & Assert
-      const successResult = await controller.ingestEvent(successEvent);
+      const successResult = controller.ingestEvent(
+        mockRequest as Request,
+        successEvent,
+      );
       expect(successResult).toEqual(mockProcessResponse);
 
-      await expect(controller.ingestEvent(failureEvent)).rejects.toThrow(
-        'Processing failed',
-      );
+      expect(() =>
+        controller.ingestEvent(mockRequest as Request, failureEvent),
+      ).toThrow('Processing failed');
     });
   });
 });
