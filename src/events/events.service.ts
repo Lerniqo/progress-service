@@ -21,6 +21,8 @@ export class EventsService {
     const result = await this.eventModel
       .aggregate([
         { $match: filter },
+        // Only process documents that have concepts array in eventData
+        { $match: { 'eventData.concepts': { $exists: true, $ne: null } } },
         { $unwind: '$eventData.concepts' },
         {
           $group: {
