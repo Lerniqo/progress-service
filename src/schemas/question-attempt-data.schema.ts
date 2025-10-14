@@ -34,9 +34,9 @@ export class QuestionAttemptData implements EventDataBase {
   @Prop({ required: false })
   timeTaken: number;
 
-  @IsString()
+  @IsString({ each: true })
   @Prop({ required: true })
-  concept: string;
+  concept: string[];
 }
 
 export type QuestionAttemptDocument = QuestionAttemptData & Document;
