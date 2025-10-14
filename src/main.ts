@@ -15,7 +15,7 @@ async function bootstrap() {
       'https://main.ddwyki3l42m0e.amplifyapp.com', // Add your production frontend domain
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'x-user-id'],
     credentials: true, // Enable if you need to send cookies/auth headers
   });
 

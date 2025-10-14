@@ -8,8 +8,9 @@ import {
   Req,
   Param,
   Query,
+  BadRequestException,
 } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags, ApiHeader } from '@nestjs/swagger';
 import { EventsService } from './events.service';
 import { PinoLogger } from 'nestjs-pino';
 import { Event } from './dto';
@@ -28,6 +29,12 @@ export class EventsController {
   @Post('/')
   @HttpCode(HttpStatus.ACCEPTED) // 202 status code
   @ApiOperation({ summary: 'Ingest a progress event' })
+  @ApiHeader({
+    name: 'x-user-id',
+    description: 'User ID for the event',
+    required: true,
+    example: 'user123',
+  })
   @ApiResponse({
     status: 202,
     description: 'Event has been accepted and queued for processing',
@@ -53,7 +60,7 @@ export class EventsController {
     const userId = req.headers['x-user-id'] as string;
     if (!userId) {
       this.logger.error('User ID not provided in request headers');
-      throw new Error('User ID is required');
+      throw new BadRequestException('User ID is required. Please provide x-user-id header.');
     }
 
     if (!event.timestamp) {
@@ -118,13 +125,19 @@ export class EventsController {
   }
 
   @Get('/user/is-personalization-ready')
+  @ApiHeader({
+    name: 'x-user-id',
+    description: 'User ID for the personalization check',
+    required: true,
+    example: 'user123',
+  })
   async isUserDoneSufficientQuestions(@Req() req: Request): Promise<{
     isPersonalizationReady: boolean;
   }> {
     const userId = req.headers['x-user-id'] as string;
     if (!userId) {
       this.logger.error('User ID not provided in request headers');
-      throw new Error('User ID is required');
+      throw new BadRequestException('User ID is required. Please provide x-user-id header.');
     }
 
     this.logger.info(
@@ -161,7 +174,7 @@ export class EventsController {
   ) {
     if (!userId) {
       this.logger.error('User ID not provided in request parameters');
-      throw new Error('User ID is required');
+      throw new BadRequestException('User ID is required.');
     }
 
     this.logger.info({ userId, eventType }, 'Getting user event statistics');
