@@ -3,6 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { EventSchema } from './events.schema';
 import { QuizeAttemptSchema } from './quize-attempt-data.schema';
 import { EventQueueSchema } from './event-queue.schema';
+import { ChatBotMessageSchema } from './chat-bot-message-data.schema';
 
 /**
  * SchemasModule - Centralized module for all MongoDB schemas
@@ -24,6 +25,10 @@ import { EventQueueSchema } from './event-queue.schema';
         name: 'EventQueue',
         schema: EventQueueSchema,
       },
+      {
+        name: 'ChatBotMessageData',
+        schema: ChatBotMessageSchema,
+      },
     ]),
   ],
   exports: [
@@ -39,6 +44,7 @@ export class SchemasModule {
       PROGRESS_EVENT: 'Event',
       PROGRESS: 'Progress',
       EVENT_QUEUE: 'EventQueue',
+      CHAT_BOT_MESSAGE: 'ChatBotMessage',
     } as const;
   }
 
@@ -50,6 +56,7 @@ export class SchemasModule {
       PROGRESS_EVENTS: 'progress_events',
       PROGRESS: 'progress',
       EVENT_QUEUE: 'event_queue',
+      CHAT_BOT_MESSAGES: 'chat_bot_messages',
     } as const;
   }
 }

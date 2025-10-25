@@ -60,7 +60,9 @@ export class EventsController {
     const userId = req.headers['x-user-id'] as string;
     if (!userId) {
       this.logger.error('User ID not provided in request headers');
-      throw new BadRequestException('User ID is required. Please provide x-user-id header.');
+      throw new BadRequestException(
+        'User ID is required. Please provide x-user-id header.',
+      );
     }
 
     if (!event.timestamp) {
@@ -124,6 +126,36 @@ export class EventsController {
     return this.eventsService.getEventsByUserId(userId, eventType, limit);
   }
 
+  @Get('/user/:userId/is-personalization-ready')
+  @ApiOperation({
+    summary:
+      'Check if user has completed sufficient questions for personalization',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Personalization readiness status',
+    schema: {
+      type: 'object',
+      properties: {
+        isPersonalizationReady: { type: 'boolean' },
+      },
+    },
+  })
+  async isUserPersonalizationReady(@Param('userId') userId: string): Promise<{
+    isPersonalizationReady: boolean;
+  }> {
+    if (!userId) {
+      this.logger.error('User ID not provided in request parameters');
+      throw new BadRequestException('User ID is required.');
+    }
+
+    this.logger.info(
+      { userId },
+      'Checking if user has completed sufficient questions for personalization',
+    );
+    return await this.eventsService.isUserDoneSufficientQuestions(userId);
+  }
+
   @Get('/user/is-personalization-ready')
   @ApiHeader({
     name: 'x-user-id',
@@ -137,7 +169,9 @@ export class EventsController {
     const userId = req.headers['x-user-id'] as string;
     if (!userId) {
       this.logger.error('User ID not provided in request headers');
-      throw new BadRequestException('User ID is required. Please provide x-user-id header.');
+      throw new BadRequestException(
+        'User ID is required. Please provide x-user-id header.',
+      );
     }
 
     this.logger.info(

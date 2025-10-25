@@ -188,38 +188,6 @@ describe('EventsController', () => {
       expect(result).toEqual(videoResponse);
     });
 
-    it('should handle AI tutor interaction events', () => {
-      // Arrange
-      const aiTutorEvent: Event = {
-        eventType: EventType.AI_TUTOR_INTERACTION,
-        eventData: {
-          userId: 'user123',
-          interactionType: 'question',
-          query: 'What is photosynthesis?',
-          response: 'Photosynthesis is...',
-        },
-        timestamp: new Date(),
-      };
-      const aiResponse = {
-        ...mockProcessResponse,
-        queueId: 'ai-queue-789',
-      };
-      eventsService.processEvent.mockReturnValue(aiResponse);
-
-      // Act
-      const result = controller.ingestEvent(
-        mockRequest as Request,
-        aiTutorEvent,
-      );
-
-      // Assert
-      expect(eventsService.processEvent).toHaveBeenCalledWith(
-        aiTutorEvent,
-        'user123',
-      );
-      expect(result).toEqual(aiResponse);
-    });
-
     it('should handle events without metadata', () => {
       // Arrange
       const eventWithoutMetadata: Event = {
