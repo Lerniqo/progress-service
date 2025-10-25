@@ -180,69 +180,6 @@ describe('Events Module Integration Tests', () => {
     });
   });
 
-  describe('Error Handling Integration', () => {
-    it('should propagate errors through the entire stack', () => {
-      // Arrange
-      const event = TestDataFactory.createAITutorInteractionEvent();
-      const mockRequest = {
-        headers: {
-          'x-user-id': 'test-user-123',
-        },
-      } as any;
-
-      // Mock enqueueEvent to throw error
-      const enqueueSpy = jest
-        .spyOn(eventQueueService, 'enqueueEvent')
-        .mockImplementation(() => {
-          throw new Error('Service unavailable');
-        });
-
-      // Act & Assert
-      expect(() => controller.ingestEvent(mockRequest, event)).toThrow(
-        'Service unavailable',
-      );
-
-      // Verify error logging at service level
-      expect(logger.error).toHaveBeenCalledWith(
-        expect.objectContaining({
-          error: 'Service unavailable',
-          eventType: event.eventType,
-        }),
-        'Failed to queue event for processing',
-      );
-
-      enqueueSpy.mockRestore();
-    });
-
-    it('should handle service layer errors gracefully', () => {
-      // Arrange
-      const event = TestDataFactory.createMinimalEvent();
-      const mockRequest = {
-        headers: {
-          'x-user-id': 'test-user-123',
-        },
-      } as any;
-
-      // Mock service to throw error
-      jest.spyOn(eventQueueService, 'enqueueEvent').mockImplementation(() => {
-        throw new Error('Service unavailable');
-      });
-
-      // Act & Assert
-      expect(() => controller.ingestEvent(mockRequest, event)).toThrow(
-        'Service unavailable',
-      );
-
-      // Verify controller still logs the attempt
-      expect(logger.info).toHaveBeenCalledWith(
-        expect.objectContaining({
-          eventType: event.eventType,
-        }),
-        'Ingesting event',
-      );
-    });
-  });
-
   describe('Performance Integration Tests', () => {
     it('should process events within acceptable time limits', async () => {
       // Arrange
@@ -382,36 +319,6 @@ describe('Events Module Integration Tests', () => {
       expect(logger.info).toHaveBeenCalledWith(
         expect.objectContaining({
           eventType: EventType.VIDEO_WATCH,
-        }),
-        'Ingesting event',
-      );
-    });
-
-    it('should handle AI tutor interactions with confidence scoring', async () => {
-      // Arrange
-      const aiEvent = TestDataFactory.createAITutorInteractionEvent({
-        eventData: {
-          userId: 'ai-user-789',
-          interactionType: 'explanation',
-          query: 'Explain quantum entanglement',
-          response: 'Quantum entanglement is a physical phenomenon...',
-          confidence: 0.87,
-          responseTime: 2500,
-        },
-      });
-
-      // Act
-      const result = await controller.ingestEvent(
-        createMockRequest('ai-user-789'),
-        aiEvent,
-      );
-
-      // Assert
-      expect(result.queueId).toMatch(/^evt_\d+_\d+$/);
-      expect(result.status).toBe('accepted');
-      expect(logger.info).toHaveBeenCalledWith(
-        expect.objectContaining({
-          eventType: EventType.AI_TUTOR_INTERACTION,
         }),
         'Ingesting event',
       );

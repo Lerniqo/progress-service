@@ -86,7 +86,6 @@ export class TestDataFactory {
     };
   }
 
-
   /**
    * Creates a batch of events for testing concurrent processing
    */
