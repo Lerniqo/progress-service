@@ -1,32 +1,15 @@
-import { Module } from '@nestjs/common';
-import { SchemasModule } from '../schemas';
-
-import { KafkaService } from '../kafka/kafka.service';import { KafkaModule } from '../kafka/kafka.module';
-
-import { EventsService } from './events.service';import { EventsController } from './events.controller';
-
-import { PinoLogger } from 'nestjs-pino/PinoLogger';import { EventsService } from './events.service';
-
-import { EventType } from '../schemas/event-types.enum';import { EventQueueService } from './event-queue.service';
-
+import { Test, TestingModule } from '@nestjs/testing';
 import { EventsKafkaConsumerService } from './events-kafka-consumer.service';
+import { KafkaService } from '../kafka/kafka.service';
+import { EventsService } from './events.service';
+import { PinoLogger } from 'nestjs-pino/PinoLogger';
+import { EventType } from '../schemas/event-types.enum';
 
 describe('EventsKafkaConsumerService', () => {
+  let service: EventsKafkaConsumerService;
 
-  let service: EventsKafkaConsumerService;@Module({
-
-  let kafkaService: jest.Mocked<KafkaService>;  imports: [SchemasModule, KafkaModule],
-
-  let eventsService: jest.Mocked<EventsService>;  controllers: [EventsController],
-
-  let logger: jest.Mocked<PinoLogger>;  providers: [EventsService, EventQueueService, EventsKafkaConsumerService],
-
-  exports: [EventsService, EventQueueService],
-
-  const mockLogger = {})
-
-    setContext: jest.fn(),export class EventsModule {}
-
+  const mockLogger = {
+    setContext: jest.fn(),
     info: jest.fn(),
     warn: jest.fn(),
     error: jest.fn(),
@@ -63,9 +46,6 @@ describe('EventsKafkaConsumerService', () => {
     service = module.get<EventsKafkaConsumerService>(
       EventsKafkaConsumerService,
     );
-    kafkaService = module.get(KafkaService);
-    eventsService = module.get(EventsService);
-    logger = module.get(PinoLogger);
 
     jest.clearAllMocks();
   });
@@ -105,11 +85,10 @@ describe('EventsKafkaConsumerService', () => {
     let messageHandler: (payload: any) => Promise<void>;
 
     beforeEach(async () => {
-      mockKafkaService.consumeMessages.mockImplementation(
-        async (topic, handler) => {
-          messageHandler = handler;
-        },
-      );
+      mockKafkaService.consumeMessages.mockImplementation((topic, handler) => {
+        messageHandler = handler;
+        return Promise.resolve();
+      });
       await service.onModuleInit();
     });
 
